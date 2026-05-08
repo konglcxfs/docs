@@ -1,0 +1,362 @@
+---
+title: "POST Create a chat completion"
+description: "OpenAI-compatible chat completions. Supports streaming, tool/function calling, structured outputs, multimodal, and ClearMaas fallback chains."
+icon: "info"
+---
+
+<div className="flex items-center gap-3 mb-6">
+  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-green-200 dark:border-green-800">
+    POST
+  </span>
+  <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
+    Create a chat completion
+  </span>
+</div>
+
+Use provider-prefixed model names (`openai/gpt-4o-mini`,
+`anthropic/claude-sonnet-4.6`, `google/gemini-2.5-flash`), plain
+bare-name aliases when available, or named routers
+(`clearmaas/auto`).
+
+## OpenAPI
+
+````yaml /openapi.yaml post /chat/completions
+openapi: 3.1.0
+info:
+  title: ClearMaas API
+  version: '2026.04'
+  description: |
+    ClearMaas is an OpenAI-compatible API gateway that routes your requests
+    directly to upstream providers — OpenAI, Anthropic, Google Gemini,
+    DeepSeek, xAI Grok, Alibaba Qwen, Moonshot Kimi, MiniMax, and Kling
+    (video) — at provider cost price. You pay what the provider charges.
+    We don't add per-token markup.
+  contact:
+    name: ClearMaas Support
+    email: support@clearmaas.com
+    url: https://clearmaas.com
+  license:
+    name: Commercial
+    url: https://clearmaas.com/terms.html
+servers:
+  - url: https://api.clearmaas.com/v1
+    description: Production
+security:
+  - bearerAuth: []
+tags:
+  - name: Chat
+    description: |
+      OpenAI-compatible chat completions. Supports streaming, tool/function
+      calling, vision, audio input, structured outputs, reasoning, and
+      ClearMaas-specific routing extensions via `extra_body`.
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - Chat
+      summary: Create a chat completion
+      operationId: createChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Successful completion. Streaming responses use SSE (`text/event-stream`).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamError'
+components:
+  schemas:
+    ChatCompletionRequest:
+      type: object
+      required:
+        - model
+        - messages
+      properties:
+        model:
+          type: string
+          description: |
+            Model ID — provider-prefixed (e.g. `openai/gpt-4o-mini`), bare alias, or named router (e.g. `clearmaas/auto`).
+          example: openai/gpt-4o-mini
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        stream:
+          type: boolean
+        stream_options:
+          type: object
+          properties:
+            include_usage:
+              type: boolean
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tool'
+        tool_choice:
+          oneOf:
+            - type: string
+              enum: [auto, none, required]
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum: [function]
+                function:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+        parallel_tool_calls:
+          type: boolean
+          default: true
+        response_format:
+          $ref: '#/components/schemas/ResponseFormat'
+        temperature:
+          type: number
+        top_p:
+          type: number
+        max_tokens:
+          type: integer
+        max_completion_tokens:
+          type: integer
+        reasoning_effort:
+          type: string
+          enum: [low, medium, high]
+        web_search_options:
+          type: object
+          properties:
+            search_context_size:
+              type: string
+              enum: [low, medium, high]
+        extra_body:
+          $ref: '#/components/schemas/ClearExtraBody'
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          enum: [chat.completion]
+        created:
+          type: integer
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                type: integer
+              message:
+                $ref: '#/components/schemas/ChatMessage'
+              finish_reason:
+                type: string
+        usage:
+          $ref: '#/components/schemas/Usage'
+    ChatMessage:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          $ref: '#/components/schemas/ChatMessageRole'
+        content:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: '#/components/schemas/ChatMessageContentPart'
+    Tool:
+      type: object
+      required: [type, function]
+      properties:
+        type:
+          type: string
+          enum: [function]
+        function:
+          type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            parameters:
+              type: object
+    ResponseFormat:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [json_object]
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [json_schema]
+            json_schema:
+              type: object
+    ClearExtraBody:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            type: string
+          description: Ordered fallback chain (max 5 models).
+        route:
+          type: string
+          enum: [fallback]
+    Usage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [message, type]
+          properties:
+            message:
+              type: string
+            type:
+              type: string
+            code:
+              type: [string, 'null']
+    ChatMessageRole:
+      type: string
+      enum: [system, user, assistant, tool, function]
+    ChatMessageContentPart:
+      oneOf:
+        - type: object
+          required: [type, text]
+          properties:
+            type:
+              type: string
+              enum: [text]
+            text:
+              type: string
+        - type: object
+          required: [type, image_url]
+          properties:
+            type:
+              type: string
+              enum: [image_url]
+            image_url:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                detail:
+                  type: string
+                  enum: [auto, low, high]
+        - type: object
+          required: [type, input_audio]
+          properties:
+            type:
+              type: string
+              enum: [input_audio]
+            input_audio:
+              type: object
+              required: [data, format]
+              properties:
+                data:
+                  type: string
+                format:
+                  type: string
+                  enum: [wav, mp3]
+    ToolCall:
+      type: object
+      required: [id, type, function]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [function]
+        function:
+          type: object
+          required: [name, arguments]
+          properties:
+            name:
+              type: string
+            arguments:
+              type: string
+  headers:
+    XClearFallbackLevel:
+      description: Index of the model in the fallback chain that served the response (0 = primary).
+      schema:
+        type: integer
+    XClearFallbackModel:
+      description: Name of the fallback model that served the response.
+      schema:
+        type: string
+    XClearRouter:
+      description: Name of the clearmaas/{name} router used.
+      schema:
+        type: string
+    XClearResolvedModel:
+      description: Concrete model name a named router resolved to.
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Invalid request parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Rate limit exceeded. Retry after the delay in Retry-After header.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamError:
+      description: All upstream providers failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key (sk-clearmaas-...)
+      description: |
+        ClearMaas API keys look like `sk-clearmaas-...`. Pass them in the
+        `Authorization: Bearer sk-clearmaas-...` header.
+````

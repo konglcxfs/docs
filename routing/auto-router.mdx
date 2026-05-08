@@ -1,0 +1,77 @@
+---
+title: "Auto Router"
+description: "clearmaas/auto — let ClearMaas pick the cheapest live model per request."
+icon: "sparkles"
+---
+
+`clearmaas/auto` is a [named router](/routing/named-routers) we
+create for every account on signup. It routes each request to the
+cheapest live chat model your account has access to, chosen fresh per
+request.
+
+## Usage
+
+<CodeGroup>
+  ```python Python
+response = client.chat.completions.create(
+    model="clearmaas/auto",
+    messages=[{"role": "user", "content": "..."}],
+)
+  ```
+
+  ```ts TypeScript
+const response = await openai.chat.completions.create({
+  model: "clearmaas/auto",
+  messages: [{ role: "user", content: "..." }],
+});
+  ```
+</CodeGroup>
+
+No other setup required — the router exists the moment your account is
+created.
+
+## Default behavior
+
+The seed configuration:
+
+* **Pattern**: empty — matches **every chat model your account has
+  access to**. New models that come online become candidates
+  automatically.
+* **Strategy**: `cheapest` — picks the model with the lowest per-token
+  price among live candidates.
+* **Default model**: none. If the pattern resolves to no available
+  models, the request fails with a clear error. You can set a default
+  in the dashboard if you want a safety net.
+
+You can see and edit your Auto Router in the dashboard under **Routing**.
+You can narrow the pattern (e.g. restrict to `openai/*`), swap the
+strategy (`balanced` / `quality`), set a `default_model`, or delete the
+router entirely — same as any [named router](/routing/named-routers).
+
+## When to prefer Auto Router over explicit model names
+
+* You don't want to pin to a specific model; you want the cheapest live
+  chat model at each request.
+* You're prototyping and don't want to care about which provider is up.
+* You want ClearMaas's routing to "just work" without thinking about it.
+
+## When to prefer explicit model names
+
+* You need deterministic output — picking different models at different
+  times will change generation style and quality.
+* You're using features specific to one model (e.g. Claude's
+  `cache_control`, or a model's native image generation).
+* You want predictable per-request cost.
+
+## Seeing what Auto Router picked
+
+Check the `X-Clear-Resolved-Model` response header. See
+[Response Headers](/routing/response-headers).
+
+```python
+res = client.chat.completions.with_raw_response.create(
+    model="clearmaas/auto", ...
+)
+actual_model = res.headers.get("X-Clear-Resolved-Model")
+# e.g. "openai/gpt-4o-mini"
+```

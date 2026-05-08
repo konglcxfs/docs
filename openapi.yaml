@@ -1,0 +1,1584 @@
+openapi: 3.1.0
+info:
+  title: ClearMaas API
+  version: '2026.04'
+  description: |
+    ClearMaas is an OpenAI-compatible API gateway that routes your requests
+    directly to upstream providers — OpenAI, Anthropic, Google Gemini,
+    DeepSeek, xAI Grok, Alibaba Qwen, Moonshot Kimi, MiniMax, and Kling
+    (video) — at provider cost price. You pay what the provider charges.
+    We don't add per-token markup.
+
+    This reference documents every endpoint ClearMaas exposes. If you're
+    already using the OpenAI SDK, the only change required is setting
+    `base_url` to `https://api.clearmaas.com/v1` and swapping your API key.
+
+    See also:
+
+    - [Privacy Policy](/privacy.html)
+    - [Terms of Service](/terms.html)
+  contact:
+    name: ClearMaas Support
+    email: support@clearmaas.com
+    url: https://clearmaas.com
+  license:
+    name: Commercial
+    url: https://clearmaas.com/terms.html
+servers:
+- url: https://api.clearmaas.com/v1
+  description: Production
+security:
+- bearerAuth: []
+tags:
+- name: Chat
+  description: |
+    OpenAI-compatible chat completions. Supports streaming, tool/function
+    calling, vision, audio input, structured outputs, reasoning, and
+    ClearMaas-specific routing extensions via `extra_body`.
+- name: Responses
+  description: |
+    OpenAI Responses API. Supported with OpenAI models and xAI Grok
+    (xAI's Agent Tools API uses the same shape). Anthropic and Gemini
+    targets return `not_implemented` — call `/v1/messages` or
+    `/v1beta/.../generateContent` for those.
+- name: Messages
+  description: Anthropic-compatible messages endpoint at POST /v1/messages.
+- name: Models
+  description: List available models and inspect a single model.
+- name: Images
+  description: |
+    Image generation via /v1/images/generations. Behavior matches
+    OpenAI's images API; pass any image-generation model published by
+    the upstream provider.
+- name: Audio
+  description: |
+    Text-to-speech via /v1/audio/speech. Behavior matches OpenAI's
+    audio API for the speech endpoint.
+- name: Video
+  description: |
+    Async video generation via /v1/video/generations. Submit a task,
+    poll the task ID. Currently routed to Kling — supports text-to-video,
+    image-to-video, and Omni-Video (multi-source / multi-shot) on a
+    single endpoint, switched by which `metadata` fields you supply.
+- name: Gemini Native
+  description: |
+    Gemini's native API surface at /v1beta/models/{model}:{action}.
+    Use this for any Gemini capability — chat, multimodal input
+    (image/audio inline_data), function calling, native built-in
+    tools (`googleSearch`, `codeExecution`, `urlContext`), TTS preview
+    models, image-output models, and `thinkingConfig`-controlled
+    reasoning.
+paths:
+  /chat/completions:
+    post:
+      tags:
+      - Chat
+      summary: Create a chat completion
+      description: |
+        OpenAI-compatible chat completions. Supports:
+
+        - Streaming (`stream: true`, SSE)
+        - Tool / function calling (`tools`, `tool_choice`)
+        - Structured outputs (`response_format`)
+        - **Multimodal** — send images via `content: [{type: "image_url", ...}]`
+          (see `ChatMessageContentPart` schema below). `https://` URLs
+          work against every vision-capable model; ClearMaas's
+          translation layer adapts the content part for each upstream
+          (OpenAI, Anthropic, Google, xAI Grok).
+        - ClearMaas fallback chains via `extra_body.models`.
+
+        Use provider-prefixed model names (`openai/gpt-4o-mini`,
+        `anthropic/claude-sonnet-4.6`, `google/gemini-2.5-flash`), plain
+        bare-name aliases when available, or named routers
+        (`clearmaas/auto`).
+      operationId: createChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+            examples:
+              textOnly:
+                summary: Text-only request
+                value:
+                  model: openai/gpt-4o-mini
+                  messages:
+                  - role: user
+                    content: Say hi in one word.
+                  max_tokens: 10
+              vision:
+                summary: Vision (image input)
+                value:
+                  model: openai/gpt-4o-mini
+                  messages:
+                  - role: user
+                    content:
+                    - type: text
+                      text: What is in this image?
+                    - type: image_url
+                      image_url:
+                        url: https://example.com/cat.jpg
+                  max_tokens: 50
+              fallbackChain:
+                summary: Fallback chain across providers
+                value:
+                  model: openai/gpt-4o-mini
+                  messages:
+                  - role: user
+                    content: Hello.
+                  max_tokens: 20
+                  extra_body:
+                    models:
+                    - openai/gpt-4o-mini
+                    - anthropic/claude-haiku-4.5
+                    - google/gemini-2.5-flash
+                    route: fallback
+      responses:
+        '200':
+          description: Successful completion. Streaming responses use SSE (`text/event-stream`).
+          headers:
+            X-Clear-Fallback-Level:
+              $ref: '#/components/headers/XClearFallbackLevel'
+            X-Clear-Fallback-Model:
+              $ref: '#/components/headers/XClearFallbackModel'
+            X-Clear-Router:
+              $ref: '#/components/headers/XClearMaas'
+            X-Clear-Resolved-Model:
+              $ref: '#/components/headers/XClearResolvedModel'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+            text/event-stream:
+              schema:
+                type: string
+                description: 'Server-sent events. Each line is `data: {...}`; stream ends
+
+                  with `data: [DONE]`.
+
+                  '
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/InsufficientQuota'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/UpstreamError'
+  /models:
+    get:
+      tags:
+      - Models
+      summary: List available models
+      operationId: listModels
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelList'
+  /models/{model_id}:
+    get:
+      tags:
+      - Models
+      summary: Get model details
+      operationId: getModel
+      parameters:
+      - in: path
+        name: model_id
+        required: true
+        schema:
+          type: string
+        example: openai/gpt-4o-mini
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+  /images/generations:
+    post:
+      tags:
+      - Images
+      summary: Create an image
+      description: |
+        Supported across providers: OpenAI (`gpt-image-1`, `gpt-image-1-mini`,
+        `gpt-image-1.5`), Google Imagen (`imagen-4.0-{fast,standard,ultra}-generate-001`),
+        and xAI Grok (`grok-imagine-image`, `grok-imagine-image-pro`).
+      operationId: createImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageGenerationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageResponse'
+  /audio/speech:
+    post:
+      tags:
+      - Audio
+      summary: Generate speech
+      operationId: createSpeech
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AudioSpeechRequest'
+      responses:
+        '200':
+          description: Binary audio content.
+          content:
+            audio/mpeg: {}
+            audio/wav: {}
+            audio/opus: {}
+            audio/flac: {}
+  /video/generations:
+    post:
+      tags:
+      - Video
+      summary: Submit a video task
+      description: |
+        Submit an async video-generation task. Currently routed to Kling.
+        Endpoint variant (text-to-video / image-to-video / Omni-Video) is
+        selected by which `metadata` fields you supply, not by URL.
+      operationId: createVideoTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoGenerationRequest'
+      responses:
+        '200':
+          description: Task accepted (async — poll /v1/video/generations/{task_id})
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoSubmitResponse'
+  /video/generations/{task_id}:
+    get:
+      tags:
+      - Video
+      summary: Fetch video task status
+      description: |
+        When `status` is `SUCCESS`, `data.result_url` carries the MP4
+        (upstream URL, short TTL — download promptly).
+      operationId: fetchVideoTask
+      parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Task state (wrapped envelope, uppercase status)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoFetchResponse'
+  /responses:
+    post:
+      tags:
+      - Responses
+      summary: Create a response
+      description: |
+        OpenAI Responses API. Supported on **OpenAI models** and
+        **xAI Grok models** — xAI's Agent Tools API uses the same
+        shape, so any Grok model accepts `tools: [{"type": "web_search"}]`
+        / `x_search` / `code_interpreter` here. Anthropic and Gemini
+        targets return `not_implemented` because their native shapes
+        differ — for Anthropic call `POST /v1/messages`
+        ([Native Formats / Anthropic](/native-formats/anthropic)),
+        for Gemini call `POST /v1beta/models/{model}:generateContent`
+        ([Native Formats / Gemini](/native-formats/gemini)).
+      operationId: createResponse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponsesRequest'
+      responses:
+        '200':
+          description: OK
+  /messages:
+    post:
+      tags:
+      - Messages
+      summary: Create a message
+      operationId: createMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnthropicMessageRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnthropicMessageResponse'
+  /v1beta/models/{model_path}:
+    post:
+      tags:
+      - Gemini Native
+      summary: Gemini native generate
+      description: |
+        Direct passthrough to Google's Gemini API. The `model_path`
+        parameter is `<model>:<action>`, for example
+        `google/gemini-2.5-flash:generateContent` or
+        `google/gemini-2.5-flash:streamGenerateContent`.
+
+        Supported actions:
+
+        | Action                     | What it does                             |
+        |----------------------------|------------------------------------------|
+        | `:generateContent`         | One-shot response (JSON)                 |
+        | `:streamGenerateContent`   | SSE stream of partial chunks             |
+
+        What you can do on this surface (request shape stays Gemini's
+        native JSON; pick the right model for each):
+
+        - **Chat / reasoning** — any `gemini-*` chat model, paired
+          with `generationConfig.thinkingConfig` for budget control.
+        - **Multimodal input** — `inline_data` parts for image / audio /
+          video / file content alongside `text` parts.
+        - **Function calling** — `tools: [{functionDeclarations: [...]}]`.
+        - **Built-in server tools** — `tools: [{googleSearch: {}}]`,
+          `tools: [{codeExecution: {}}]`, `tools: [{urlContext: {}}]`.
+        - **Text-to-speech** — `*-tts` preview models with
+          `generationConfig.responseModalities: ["AUDIO"]` and
+          `speechConfig.voiceConfig`.
+        - **Image generation** — `gemini-*-image*` models; the response
+          carries the image as an `inlineData` part.
+
+        Authentication accepts the standard `Authorization: Bearer
+        sk-clearmaas-…` header, plus the Gemini-style `x-goog-api-key`
+        header and `?key=` query string for google-genai SDK
+        compatibility — see [Get an API key](/getting-started/get-api-key#how-to-send-the-key).
+      operationId: geminiNativeAction
+      servers:
+        - url: https://api.clearmaas.com
+      parameters:
+        - in: path
+          name: model_path
+          required: true
+          schema:
+            type: string
+          examples:
+            generate:
+              summary: One-shot generate
+              value: google/gemini-2.5-flash:generateContent
+            stream:
+              summary: Stream
+              value: google/gemini-2.5-flash:streamGenerateContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |
+                Gemini-native request body (Google's `GenerateContentRequest`
+                shape). See the examples for common payloads.
+            examples:
+              text:
+                summary: Plain text prompt
+                value:
+                  contents:
+                    - role: user
+                      parts:
+                        - text: Write a one-sentence haiku about the sea.
+              vision:
+                summary: Image input
+                value:
+                  contents:
+                    - role: user
+                      parts:
+                        - text: What's in this picture?
+                        - inline_data:
+                            mime_type: image/jpeg
+                            data: <base64-bytes>
+              googleSearch:
+                summary: Web grounding (built-in tool)
+                value:
+                  contents:
+                    - role: user
+                      parts:
+                        - text: What changed in Gemini pricing this week?
+                  tools:
+                    - googleSearch: {}
+              imageGeneration:
+                summary: Image generation (gemini-2.5-flash-image)
+                value:
+                  contents:
+                    - role: user
+                      parts:
+                        - text: A watercolour of a foggy harbor at dawn.
+                  generationConfig:
+                    responseModalities:
+                      - TEXT
+                      - IMAGE
+      responses:
+        '200':
+          description: |
+            Successful response. For `:generateContent` the body is
+            JSON (`GenerateContentResponse`). For `:streamGenerateContent`
+            the body is SSE (`text/event-stream`); each event is a
+            partial `GenerateContentResponse`.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Gemini-native `GenerateContentResponse`.
+            text/event-stream:
+              schema:
+                type: string
+                description: SSE stream of partial responses.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key (sk-clearmaas-...)
+      description: 'ClearMaas API keys look like `sk-clearmaas-...`. Pass them in the
+
+        `Authorization: Bearer sk-clearmaas-...` header.
+
+        '
+  headers:
+    XClearFallbackLevel:
+      description: 'Index of the model in your `extra_body.models` chain that ultimately
+
+        served the response (0 = primary). Omitted if no fallback was
+
+        triggered.
+
+        '
+      schema:
+        type: integer
+        example: 1
+    XClearFallbackModel:
+      description: Name of the model that served the response after fallback.
+      schema:
+        type: string
+        example: openai/gpt-4o-mini
+    XClearMaas:
+      description: Name of the `clearmaas/{name}` router used, if any.
+      schema:
+        type: string
+        example: auto
+    XClearResolvedModel:
+      description: Concrete model name a named router resolved to.
+      schema:
+        type: string
+        example: openai/gpt-4o-mini
+  responses:
+    BadRequest:
+      description: Invalid request parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InsufficientQuota:
+      description: Account quota exhausted.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Rate limit exceeded. Retry after the delay in `Retry-After` header.
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            example: 5
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UpstreamError:
+      description: 'All upstream providers failed (including any `extra_body.models`
+
+        fallback chain). Response includes a description of the last
+
+        upstream error encountered.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          required:
+          - message
+          - type
+          properties:
+            message:
+              type: string
+            type:
+              type: string
+              description: |
+                Broad error category. Common values: `clearmaas_api_error`
+                (gateway-issued), `upstream_error` (provider failure or
+                timeout), or one of `openai_error` / `claude_error` /
+                `gemini_error` for verbatim upstream errors. See
+                Operations / Errors.
+              example: clearmaas_api_error
+            code:
+              type:
+                - string
+                - "null"
+              description: |
+                Specific error code. Common values for gateway-issued
+                errors: `insufficient_user_quota`, `model_not_found`,
+                `model_price_error`, `api_not_implemented`,
+                `bad_request_body`, `prompt_blocked`,
+                `sensitive_words_detected`.
+            param:
+              type:
+                - string
+                - "null"
+    ClearExtraBody:
+      type: object
+      description: 'ClearMaas-specific request extensions. Place these under the
+
+        `extra_body` top-level key of your chat completion request.
+
+        '
+      properties:
+        models:
+          type: array
+          description: 'Ordered fallback chain. If the primary `model` fails, ClearMaas
+
+            tries each model in sequence until one succeeds or the list is
+
+            exhausted. Maximum 5 models.
+
+            '
+          items:
+            type: string
+          example:
+          - openai/gpt-4o
+          - anthropic/claude-haiku-4.5
+          - google/gemini-2.5-pro
+        route:
+          type: string
+          enum:
+          - fallback
+          description: Set to `"fallback"` to enable the `models` chain.
+    ChatMessageRole:
+      type: string
+      enum:
+      - system
+      - user
+      - assistant
+      - tool
+      - function
+    ChatMessageContentPart:
+      description: |
+        A single part of a multimodal message. Use an **array** of parts as
+        `ChatMessage.content` when sending anything beyond plain text — images,
+        audio, or any mix. Use a **plain string** for simple text.
+
+        The gateway accepts OpenAI's content-part format for every upstream
+        (OpenAI / Anthropic / Google). ClearMaas's translation layer adapts:
+
+        - → OpenAI: native target — content parts land in OpenAI's shape.
+        - → Anthropic: `image_url` becomes `{type: image, source: ...}`.
+        - → Google Gemini: `image_url` becomes `inline_data`; `input_audio`
+          becomes `inline_data` with the right MIME.
+
+        Clients don't need provider-specific code.
+      oneOf:
+      - type: object
+        title: Text
+        required:
+        - type
+        - text
+        properties:
+          type:
+            type: string
+            enum:
+            - text
+          text:
+            type: string
+      - type: object
+        title: Image URL
+        description: |
+          Send an image to a vision-capable model. Two URL forms are accepted:
+
+          1. **Remote URL**: any publicly-reachable `https://` link.
+             The upstream provider fetches the bytes.
+          2. **Inline data URI**: `data:image/png;base64,iVBORw0...`
+             (or `image/jpeg`, `image/gif`, `image/webp`). Use this when
+             you don't want to host the image somewhere.
+
+          Each upstream enforces its own per-image size cap. ClearMaas
+          respects the upstream's limit, so exceeding it surfaces as a
+          400 from the provider. Check the upstream's current vision
+          documentation for the exact number.
+        required:
+        - type
+        - image_url
+        properties:
+          type:
+            type: string
+            enum:
+            - image_url
+          image_url:
+            type: object
+            required:
+            - url
+            properties:
+              url:
+                type: string
+                description: |
+                  `https://` URL to an image, OR a `data:<mime>;base64,<data>`
+                  URI for inline images. Supported MIME types:
+                  `image/png`, `image/jpeg`, `image/gif`, `image/webp`.
+                example: "https://example.com/photo.jpg"
+              detail:
+                type: string
+                description: |
+                  OpenAI-only hint about how carefully to process the image.
+                  Ignored by other providers.
+                enum:
+                - auto
+                - low
+                - high
+      - type: object
+        title: Audio input (base64)
+        description: |
+          Inline audio for OpenAI audio-input models and Gemini
+          multimodal models. `format` accepts `mp3` / `wav` / `flac`
+          / `ogg` / `webm`.
+        required:
+        - type
+        - input_audio
+        properties:
+          type:
+            type: string
+            enum:
+            - input_audio
+          input_audio:
+            type: object
+            required:
+            - data
+            - format
+            properties:
+              data:
+                type: string
+                description: base64-encoded audio
+              format:
+                type: string
+                enum:
+                - wav
+                - mp3
+    ChatMessage:
+      type: object
+      required:
+      - role
+      properties:
+        role:
+          $ref: '#/components/schemas/ChatMessageRole'
+        content:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              $ref: '#/components/schemas/ChatMessageContentPart'
+        name:
+          type: string
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCall'
+        tool_call_id:
+          type: string
+    Tool:
+      type: object
+      required:
+      - type
+      - function
+      properties:
+        type:
+          type: string
+          enum:
+          - function
+        function:
+          type: object
+          required:
+          - name
+          properties:
+            name:
+              type: string
+            description:
+              type: string
+            parameters:
+              type: object
+              description: JSON Schema
+            strict:
+              type: boolean
+    ToolCall:
+      type: object
+      required:
+      - id
+      - type
+      - function
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - function
+        function:
+          type: object
+          required:
+          - name
+          - arguments
+          properties:
+            name:
+              type: string
+            arguments:
+              type: string
+              description: JSON-encoded argument object
+    ResponseFormat:
+      oneOf:
+      - type: object
+        title: Text (default)
+        properties:
+          type:
+            type: string
+            enum:
+            - text
+      - type: object
+        title: JSON mode
+        properties:
+          type:
+            type: string
+            enum:
+            - json_object
+      - type: object
+        title: JSON Schema
+        required:
+        - type
+        - json_schema
+        properties:
+          type:
+            type: string
+            enum:
+            - json_schema
+          json_schema:
+            type: object
+            required:
+            - name
+            - schema
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              schema:
+                type: object
+              strict:
+                type: boolean
+    ChatCompletionRequest:
+      type: object
+      required:
+      - model
+      - messages
+      properties:
+        model:
+          type: string
+          description: "Model ID. Supports three forms:\n- Provider-prefixed (default): `openai/gpt-4o-mini`, `anthropic/claude-sonnet-4.6`, `google/gemini-2.5-flash`\n- Plain alias: `gpt-4o-mini` (when a bare-name alias is available)\n- Named router: `clearmaas/{name}` (resolves to a model at request time; `clearmaas/auto` is seeded on signup for every account and picks the cheapest live chat model)\n"
+          examples:
+          - gpt-4o
+          - openai/gpt-4o
+          - clearmaas/auto
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        stream:
+          type: boolean
+          description: When true, response is streamed as server-sent events.
+        stream_options:
+          type: object
+          description: 'Only applies when `stream: true`.'
+          properties:
+            include_usage:
+              type: boolean
+              description: 'When true, the final streamed chunk (before `[DONE]`) includes
+
+                the `usage` object with token counts.
+
+                '
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tool'
+        tool_choice:
+          oneOf:
+          - type: string
+            enum:
+            - auto
+            - none
+            - required
+          - type: object
+            properties:
+              type:
+                type: string
+                enum:
+                - function
+              function:
+                type: object
+                properties:
+                  name:
+                    type: string
+        parallel_tool_calls:
+          type: boolean
+          default: true
+        response_format:
+          $ref: '#/components/schemas/ResponseFormat'
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+        top_p:
+          type: number
+          minimum: 0
+          maximum: 1
+        max_tokens:
+          type: integer
+          minimum: 1
+        max_completion_tokens:
+          type: integer
+          description: Preferred over `max_tokens` for reasoning models.
+        n:
+          type: integer
+          minimum: 1
+          default: 1
+        stop:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+        seed:
+          type: integer
+          description: For deterministic sampling.
+        logprobs:
+          type: boolean
+        top_logprobs:
+          type: integer
+          minimum: 0
+          maximum: 20
+        presence_penalty:
+          type: number
+          minimum: -2
+          maximum: 2
+        frequency_penalty:
+          type: number
+          minimum: -2
+          maximum: 2
+        logit_bias:
+          type: object
+          additionalProperties:
+            type: number
+        user:
+          type: string
+        reasoning_effort:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          description: |
+            For OpenAI reasoning models (`o1`, `o3*`, `o4*`, `gpt-5*-pro`,
+            etc.). Anthropic Claude uses the `thinking` field instead;
+            Gemini uses provider-specific configuration.
+        web_search_options:
+          type: object
+          description: |
+            Enable web search on a Chat Completions request. The
+            Responses API uses `tools: [{"type": "web_search"}]`
+            instead. Honored by OpenAI search-preview models, OpenAI
+            models that accept the modern `web_search` tool, and
+            Anthropic models (translated to Anthropic's native
+            `web_search` server-tool).
+          properties:
+            search_context_size:
+              type: string
+              enum:
+              - low
+              - medium
+              - high
+              description: |
+                Controls search depth. Pricing for `web_search` is
+                the same regardless.
+            user_location:
+              type: object
+              description: Hint about the caller's location for localized results.
+              properties:
+                approximate:
+                  type: object
+                  properties:
+                    country:
+                      type: string
+                    region:
+                      type: string
+                    city:
+                      type: string
+                    timezone:
+                      type: string
+        web_search:
+          description: |
+            Free-form raw payload forwarded to the upstream's web-search
+            tool when `web_search_options` is not expressive enough.
+            Most users should prefer `web_search_options`.
+        extra_body:
+          $ref: '#/components/schemas/ClearExtraBody'
+    Usage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          enum:
+          - chat.completion
+        created:
+          type: integer
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                type: integer
+              message:
+                $ref: '#/components/schemas/ChatMessage'
+              finish_reason:
+                type: string
+                enum:
+                - stop
+                - length
+                - content_filter
+                - tool_calls
+                - function_call
+        usage:
+          $ref: '#/components/schemas/Usage'
+    Model:
+      type: object
+      properties:
+        id:
+          type: string
+          example: openai/gpt-4o-mini
+        object:
+          type: string
+          enum:
+          - model
+        created:
+          type: integer
+        owned_by:
+          type: string
+          example: openai
+        supported_endpoint_types:
+          type: array
+          items:
+            type: string
+          example:
+          - openai
+        context_length:
+          type: integer
+          description: |
+            Maximum context window in tokens. Present only when the
+            administrator has populated capability metadata for this
+            model; otherwise omitted.
+        max_completion_tokens:
+          type: integer
+          description: |
+            Maximum tokens the model can return per response. Present
+            only when admin metadata exists; otherwise omitted.
+        architecture:
+          type: object
+          description: |
+            Modality matrix for the model. Present only when admin
+            metadata exists; otherwise omitted.
+          properties:
+            input_modalities:
+              type: array
+              items:
+                type: string
+              example:
+              - text
+              - image
+            output_modalities:
+              type: array
+              items:
+                type: string
+              example:
+              - text
+    ModelList:
+      type: object
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Model'
+    ImageGenerationRequest:
+      type: object
+      required:
+      - model
+      - prompt
+      properties:
+        model:
+          type: string
+          description: |
+            Image-generation model. OpenAI / Google Imagen / xAI Grok
+            families are all served on this endpoint.
+          example: openai/gpt-image-1
+        prompt:
+          type: string
+        n:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 1
+        size:
+          type: string
+          description: 'OpenAI-style size like `1024x1024`. For models that use
+
+            aspect-ratio instead (Gemini Imagen), ClearMaas maps
+
+            `1024x1024` → `1:1`, `1792x1024` → `16:9`, etc.
+
+            '
+          examples:
+          - 1024x1024
+          - 1792x1024
+          - 1024x1792
+        quality:
+          type: string
+          enum:
+          - auto
+          - standard
+          - hd
+          - high
+          - medium
+          - low
+        style:
+          type: string
+          enum:
+          - vivid
+          - natural
+        response_format:
+          type: string
+          enum:
+          - url
+          - b64_json
+          default: url
+        user:
+          type: string
+    ImageResponse:
+      type: object
+      properties:
+        created:
+          type: integer
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                description: URL to the generated image (if response_format=url)
+              b64_json:
+                type: string
+                description: base64 image (if response_format=b64_json)
+              revised_prompt:
+                type: string
+    VideoGenerationRequest:
+      type: object
+      required:
+      - model
+      - prompt
+      properties:
+        model:
+          type: string
+          description: |
+            Kling video model (customer-facing name with `kling/` namespace
+            prefix). The endpoint Kling actually serves (text2video /
+            image2video / omni-video) is determined by the metadata fields
+            you pass, not by which model name you pick — but only
+            `kling/kling-video-o1` and `kling/kling-v3-omni` accept the
+            multi-source reference fields (`image_list` / `video_list`).
+          example: kling/kling-v3-omni
+          enum:
+          - kling/kling-v2-master
+          - kling/kling-v2-1-master
+          - kling/kling-v2-5-turbo
+          - kling/kling-v2-6
+          - kling/kling-v3
+          - kling/kling-video-o1
+          - kling/kling-v3-omni
+        prompt:
+          type: string
+          description: Required. Kling rejects empty / whitespace-only prompts.
+        image:
+          type: string
+          description: |
+            Optional first-frame image for image-to-video (URL or base64
+            data URI). Mutually informative with `metadata.image_tail`.
+        metadata:
+          type: object
+          description: |
+            Free-form parameter bag honored by Kling.
+
+            Universal (all endpoints):
+
+            - `mode` (string): `std` (720P) / `pro` (1080P) / `4k`. `4k`
+              only on `kling/kling-v3` and `kling/kling-v3-omni`. Default
+              is `std` for text/image-to-video, `pro` for Omni-Video.
+            - `aspect_ratio` (string): `16:9` / `9:16` / `1:1`.
+            - `duration` (string): Length in seconds, default `"5"`.
+              `kling/kling-v3-omni` and `kling/kling-v3` accept `"3"`-`"15"`;
+              v2 family and `kling/kling-video-o1` accept `"5"` or `"10"`.
+
+            Text-to-video and image-to-video only (NOT Omni-Video):
+
+            - `negative_prompt` (string): Things to avoid. Max 2500 chars.
+            - `cfg_scale` (number): Range `[0, 1]`, default `0.5`. Higher
+              = stricter prompt adherence. Not supported on v2.x models.
+            - `image_tail` (string): Last-frame image for first/last-frame
+              image-to-video.
+
+            Multi-source reference (Omni endpoint, `kling/kling-video-o1`
+            / `kling/kling-v3-omni` only):
+
+            - `image_list` (array): `[{image_url, type}]` — multi-image
+              reference. Refer to images in prompt with `<<<image_1>>>` etc.
+            - `video_list` (array):
+              `[{video_url, refer_type, keep_original_sound}]`. On
+              `kling/kling-v3-omni` limited to 3-10s and std/pro mode
+              (not 4K).
+
+            Advanced features (model-dependent — see Capability Map):
+
+            - `multi_shot` (bool) + `shot_type` (`customize` / `intelligence`)
+              + `multi_prompt` (`[{index, prompt, duration}]`): multi-shot
+              mode. Available on `kling/kling-v3` and `kling/kling-v3-omni`.
+            - `sound` (string): `"on"` / `"off"` — native audio. Available
+              on `kling/kling-v3` and `kling/kling-v3-omni` (any mode),
+              and `kling/kling-v2-6` (pro mode only).
+            - `watermark_info` (object): `{enabled: bool}`. Universal.
+          additionalProperties: true
+    VideoSubmitResponse:
+      type: object
+      description: |
+        OpenAI-style submit response. Returned by `POST /v1/video/generations`
+        (and the OpenAI-symmetric alias `POST /v1/videos`).
+      properties:
+        id:
+          type: string
+          description: Task ID. Same value as `task_id` (kept for legacy clients).
+        task_id:
+          type: string
+        object:
+          type: string
+          enum: [video]
+        model:
+          type: string
+          description: |
+            Model name as the customer sent it (alias / namespace prefix
+            preserved, not the upstream-resolved name).
+        status:
+          type: string
+          description: Always `queued` on a successful submit.
+          enum: [queued]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        created_at:
+          type: integer
+          description: Unix timestamp when the task was submitted.
+    VideoFetchResponse:
+      type: object
+      description: |
+        Wrapped task envelope returned by `GET /v1/video/generations/{task_id}`.
+        For OpenAI-style flat lowercase responses, use the alias
+        `GET /v1/videos/{task_id}` instead.
+      properties:
+        code:
+          type: string
+          enum: [success]
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Internal task row ID (not the public task_id).
+            task_id:
+              type: string
+              description: Public task ID (what `POST` returned).
+            user_id:
+              type: integer
+            channel_id:
+              type: integer
+            quota:
+              type: integer
+              description: |
+                Final settled quota in ClearMaas wallet units. Reflects
+                upstream truth-based settlement (Kling's `final_unit_deduction`
+                × $0.14 × wallet conversion factor).
+            action:
+              type: string
+              enum: [textGenerate, generate, omniVideo]
+              description: |
+                Resolved upstream endpoint variant — text-to-video /
+                image-to-video / Omni-Video.
+            status:
+              type: string
+              description: Raw task status (uppercase).
+              enum:
+              - NOT_START
+              - SUBMITTED
+              - IN_PROGRESS
+              - SUCCESS
+              - FAILURE
+              - UNKNOWN
+            progress:
+              type: string
+              description: Percent string, e.g. `"30%"`, `"100%"`.
+            submit_time:
+              type: integer
+            start_time:
+              type: integer
+            finish_time:
+              type: integer
+            result_url:
+              type: string
+              description: |
+                Rendered MP4 URL. Present when `status` is `SUCCESS`.
+                URLs are upstream-issued and may carry a short TTL —
+                download promptly or rehost if you need long retention.
+            fail_reason:
+              type: string
+              description: Populated when `status` is `FAILURE`.
+            properties:
+              type: object
+              properties:
+                origin_model_name:
+                  type: string
+                  description: Customer-supplied model alias / namespace name.
+                upstream_model_name:
+                  type: string
+                  description: Upstream-resolved model (post model_mapping).
+    AudioSpeechRequest:
+      type: object
+      required:
+      - model
+      - input
+      - voice
+      properties:
+        model:
+          type: string
+          example: openai/tts-1
+          description: |
+            OpenAI TTS model — `openai/tts-1`, `openai/tts-1-hd`,
+            `openai/gpt-4o-mini-tts`. Gemini TTS preview models are not
+            served on this endpoint; use Gemini's native `/v1beta/`
+            surface with `responseModalities: ["AUDIO"]` instead.
+        input:
+          type: string
+        voice:
+          type: string
+          description: |
+            Voice identifier. The gateway forwards this field to the
+            upstream unchanged — use whichever voice name the upstream
+            model supports.
+          examples:
+          - alloy
+          - echo
+          - fable
+          - onyx
+          - nova
+          - shimmer
+        instructions:
+          type: string
+          description: |
+            Optional voice direction (e.g. style, tone). Honored by
+            models that support it, such as `openai/gpt-4o-mini-tts`.
+        speed:
+          type: number
+          minimum: 0.25
+          maximum: 4.0
+          description: Playback rate. Default `1.0`.
+        stream_format:
+          type: string
+          description: |
+            When set, response is streamed in this format chunk-by-chunk
+            (subject to upstream support).
+        response_format:
+          type: string
+          enum:
+          - mp3
+          - opus
+          - aac
+          - flac
+          - wav
+          - pcm
+          default: mp3
+    ResponsesRequest:
+      type: object
+      required:
+      - model
+      - input
+      properties:
+        model:
+          type: string
+          example: openai/gpt-4.1
+        input:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              $ref: '#/components/schemas/ChatMessage'
+        instructions:
+          type: string
+        previous_response_id:
+          type: string
+          description: |
+            ID of a prior response, to continue a multi-turn conversation
+            without resending the full message history.
+        tools:
+          type: array
+          description: |
+            Free-form array of Responses-API tool entries. Each entry's
+            `type` selects the tool. Common values include `function`
+            (a custom function tool, same shape as Chat Completions),
+            `web_search` (built-in web grounding), `mcp` (Model Context
+            Protocol), and `code_interpreter`. Built-in tool calls
+            (`web_search_call`, etc.) are billed per call — see
+            Operations / Billing & Usage.
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+        tool_choice:
+          oneOf:
+          - type: string
+          - type: object
+        temperature:
+          type: number
+        top_p:
+          type: number
+        max_output_tokens:
+          type: integer
+        stream:
+          type: boolean
+        reasoning:
+          type: object
+          description: |
+            OpenAI Responses-API reasoning configuration.
+          properties:
+            effort:
+              type: string
+              enum:
+              - low
+              - medium
+              - high
+        store:
+          type: boolean
+          description: |
+            Whether the upstream may store the request/response. Allowed
+            by default; channel setting `disable_store` can override.
+        metadata:
+          type: object
+    AnthropicMessageRequest:
+      type: object
+      required:
+      - model
+      - messages
+      - max_tokens
+      properties:
+        model:
+          type: string
+          example: anthropic/claude-sonnet-4.6
+        messages:
+          type: array
+          items:
+            type: object
+            required:
+            - role
+            - content
+            properties:
+              role:
+                type: string
+                enum:
+                - user
+                - assistant
+              content:
+                oneOf:
+                - type: string
+                - type: array
+                  items:
+                    type: object
+        system:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              type: object
+        max_tokens:
+          type: integer
+        stop_sequences:
+          type: array
+          items:
+            type: string
+        stream:
+          type: boolean
+        temperature:
+          type: number
+        top_p:
+          type: number
+        top_k:
+          type: integer
+        tools:
+          type: array
+          items:
+            type: object
+        tool_choice:
+          type: object
+        thinking:
+          type: object
+          description: |
+            Anthropic extended thinking. Set on Claude 4 / Claude Opus
+            models that support thinking. The model emits a hidden
+            reasoning pass before its final answer.
+          properties:
+            type:
+              type: string
+              enum:
+              - enabled
+              - disabled
+              - adaptive
+            budget_tokens:
+              type: integer
+              description: Cap on the hidden thinking pass.
+        mcp_servers:
+          description: |
+            Free-form MCP server configuration forwarded to Anthropic
+            verbatim.
+        metadata:
+          type: object
+    AnthropicMessageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - message
+        role:
+          type: string
+          enum:
+          - assistant
+        content:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                - text
+                - tool_use
+                - thinking
+              text:
+                type: string
+        model:
+          type: string
+        stop_reason:
+          type: string
+          enum:
+          - end_turn
+          - max_tokens
+          - stop_sequence
+          - tool_use
+        stop_sequence:
+          type:
+            - string
+            - "null"
+        usage:
+          type: object
+          properties:
+            input_tokens:
+              type: integer
+            output_tokens:
+              type: integer
+            cache_creation_input_tokens:
+              type: integer
+              description: |
+                Tokens written to Anthropic prompt-cache during this
+                request. Charged separately by Anthropic; see
+                Operations / Billing & Usage.
+            cache_read_input_tokens:
+              type: integer
+              description: |
+                Tokens served out of Anthropic prompt-cache (cheaper
+                than fresh input).
+            server_tool_use:
+              type: object
+              description: |
+                Set when Anthropic's server-side tools (e.g.
+                `web_search_20260209`) ran during this turn. Tracked
+                for built-in tool billing.

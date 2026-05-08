@@ -1,0 +1,110 @@
+---
+title: "POST Create an image"
+description: "Supported across providers: OpenAI (`gpt-image-1`, `gpt-image-1-mini`), Google Imagen (`imagen-4.0-*`), and xAI Grok (`grok-imagine-image`)."
+icon: "image"
+---
+
+<div className="flex items-center gap-3 mb-6">
+  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-green-200 dark:border-green-800">
+    POST
+  </span>
+  <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
+    Create an image
+  </span>
+</div>
+
+## OpenAPI
+
+````yaml /openapi.yaml post /images/generations
+openapi: 3.1.0
+info:
+  title: ClearMaas API
+  version: '2026.04'
+  description: ClearMaas is an OpenAI-compatible API gateway.
+  contact:
+    name: ClearMaas Support
+    email: support@clearmaas.com
+    url: https://clearmaas.com
+servers:
+  - url: https://api.clearmaas.com/v1
+    description: Production
+security:
+  - bearerAuth: []
+paths:
+  /images/generations:
+    post:
+      tags:
+        - Images
+      summary: Create an image
+      operationId: createImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageGenerationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageResponse'
+components:
+  schemas:
+    ImageGenerationRequest:
+      type: object
+      required:
+        - model
+        - prompt
+      properties:
+        model:
+          type: string
+          description: Image-generation model.
+          example: openai/gpt-image-1
+        prompt:
+          type: string
+        'n':
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 1
+        size:
+          type: string
+          description: "OpenAI-style size: 1024x1024, 1792x1024, 1024x1792."
+          example: 1024x1024
+        quality:
+          type: string
+          enum: [auto, standard, hd, high, medium, low]
+        style:
+          type: string
+          enum: [vivid, natural]
+        response_format:
+          type: string
+          enum: [url, b64_json]
+          default: url
+        user:
+          type: string
+    ImageResponse:
+      type: object
+      properties:
+        created:
+          type: integer
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              b64_json:
+                type: string
+              revised_prompt:
+                type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key (sk-clearmaas-...)
+      description: Pass `Authorization: Bearer sk-clearmaas-...` header.
+````

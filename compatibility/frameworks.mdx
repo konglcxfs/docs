@@ -1,0 +1,77 @@
+---
+title: "Frameworks & Integrations"
+description: "LangChain, Vercel AI SDK, Claude Code, Codex CLI, and any tool that lets you override the OpenAI or Anthropic base URL."
+icon: "box"
+---
+
+Anything that talks to the OpenAI API talks to ClearMaas. The
+typical pattern: set the base URL to `https://api.clearmaas.com/v1`
+and use an `sk-clearmaas-...` API key. Tools that use the Anthropic SDK
+(like Claude Code) point at `https://api.clearmaas.com` instead —
+the Anthropic SDK appends `/v1/messages` itself.
+
+## LangChain
+
+```python
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(
+    model="openai/gpt-4o",
+    base_url="https://api.clearmaas.com/v1",
+    api_key="sk-clearmaas-...",
+)
+```
+
+## LangChain.js
+
+```ts
+import { ChatOpenAI } from "@langchain/openai";
+
+const model = new ChatOpenAI({
+  model: "openai/gpt-4o",
+  openAIApiKey: "sk-clearmaas-...",
+  configuration: { baseURL: "https://api.clearmaas.com/v1" },
+});
+```
+
+## Vercel AI SDK
+
+```ts
+import { createOpenAI } from "@ai-sdk/openai";
+
+const openai = createOpenAI({
+  baseURL: "https://api.clearmaas.com/v1",
+  apiKey: "sk-clearmaas-...",
+});
+
+const model = openai("openai/gpt-4o");
+```
+
+## Claude Code (CLI)
+
+```bash
+export ANTHROPIC_API_KEY="sk-clearmaas-..."
+export ANTHROPIC_BASE_URL="https://api.clearmaas.com"
+claude  # points at ClearMaas's /v1/messages endpoint
+```
+
+The Anthropic SDK that Claude Code uses appends `/v1/messages`
+itself, so the base URL should be the bare host (no `/v1` suffix).
+
+## Codex CLI / OpenAI CLI
+
+```bash
+export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
+codex
+```
+
+(Older OpenAI tools may use `OPENAI_API_BASE` instead of
+`OPENAI_BASE_URL` — set whichever your tool expects.)
+
+## Anything else
+
+If the framework lets you override the OpenAI base URL or Anthropic base
+URL, it works with ClearMaas. If the framework hardcodes the base URL,
+you can usually patch the client instance or set `OPENAI_BASE_URL` /
+`ANTHROPIC_BASE_URL` environment variables before import.

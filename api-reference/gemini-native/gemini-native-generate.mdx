@@ -1,0 +1,87 @@
+---
+title: "POST Gemini native generate"
+description: "Direct passthrough to Google's Gemini API. The `model_path` parameter is `<model>:<action>`, e.g. `google/gemini-2.5-flash:generateContent`."
+icon: "shield"
+---
+
+<div className="flex items-center gap-3 mb-6">
+  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-green-200 dark:border-green-800">
+    POST
+  </span>
+  <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
+    Gemini native generate
+  </span>
+</div>
+
+Supported actions: `:generateContent` (one-shot), `:streamGenerateContent` (SSE stream).
+
+## OpenAPI
+
+````yaml /openapi.yaml post /v1beta/models/{model_path}
+openapi: 3.1.0
+info:
+  title: ClearMaas API
+  version: '2026.04'
+  description: ClearMaas is an OpenAI-compatible API gateway.
+  contact:
+    name: ClearMaas Support
+    email: support@clearmaas.com
+    url: https://clearmaas.com
+servers:
+  - url: https://api.clearmaas.com
+    description: Production
+security:
+  - bearerAuth: []
+paths:
+  /v1beta/models/{model_path}:
+    post:
+      tags:
+        - Gemini Native
+      summary: Gemini native generate
+      operationId: geminiNativeAction
+      parameters:
+        - in: path
+          name: model_path
+          required: true
+          schema:
+            type: string
+          example: google/gemini-2.5-flash:generateContent
+          description: Model name with action suffix, e.g. google/gemini-2.5-flash:generateContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Gemini-native request body (Google's GenerateContentRequest shape).
+            example:
+              contents:
+                - role: user
+                  parts:
+                    - text: Write a one-sentence haiku about the sea.
+      responses:
+        '200':
+          description: |
+            Successful response. For `:generateContent` the body is JSON (GenerateContentResponse).
+            For `:streamGenerateContent` the body is SSE (text/event-stream).
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Gemini-native GenerateContentResponse.
+            text/event-stream:
+              schema:
+                type: string
+                description: SSE stream of partial responses.
+      servers:
+        - url: https://api.clearmaas.com
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key (sk-clearmaas-...)
+      description: |
+        ClearMaas API keys look like `sk-clearmaas-...`. Pass them in the
+        `Authorization: Bearer sk-clearmaas-...` header, or use `x-goog-api-key` / `?key=` for SDK compatibility.
+````

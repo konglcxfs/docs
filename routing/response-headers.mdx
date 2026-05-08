@@ -1,0 +1,58 @@
+---
+title: "Response Headers"
+description: "X-Clear-* headers that tell you how your request was routed."
+icon: "list"
+---
+
+ClearMaas adds a small number of headers to every API response so you
+can inspect how your request was routed. They tell you which model
+served the call (in the same provider-prefixed format you'd pass as
+`model`); they don't expose internal routing details like channel
+identifiers or upstream backend URLs.
+
+| Header | Present when | Example | Meaning |
+| ----------------------- | ------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `X-Clear-Fallback-Level` | `extra_body.models` caused a fallback | `1` | Zero-indexed position in your fallback chain that served the response. `0` means the primary model succeeded and fallback did not trigger. |
+| `X-Clear-Fallback-Model` | Fallback triggered (level > 0) | `google/gemini-2.5-pro` | The model that actually served the response after the primary failed. |
+| `X-Clear-Router` | You called `clearmaas/{name}` | `auto` | The name of the router you invoked. |
+| `X-Clear-Resolved-Model` | You called `clearmaas/{name}` | `openai/gpt-4o-mini` | The concrete model the router resolved to at request time. |
+| `Retry-After` | Response is `429 Too Many Requests` | `5` | How many seconds to wait before retrying. |
+
+## Reading them in code
+
+<CodeGroup>
+  ```python Python
+response = client.chat.completions.with_raw_response.create(
+    model="clearmaas/auto",
+    messages=[...],
+)
+print(response.headers.get("X-Clear-Resolved-Model"))
+  ```
+
+  ```ts TypeScript
+const { data, response } = await openai.chat.completions
+  .with_raw_response
+  .create({ model: "clearmaas/auto", messages: [...] });
+
+console.log(response.headers.get("x-clearmaas-resolved-model"));
+  ```
+
+  ```bash cURL
+curl -v https://api.clearmaas.com/v1/chat/completions \
+  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"clearmaas/auto","messages":[...]}'
+# -v dumps response headers to stderr; look for X-Clear-* lines
+  ```
+</CodeGroup>
+
+## What ClearMaas does **not** expose
+
+We deliberately do not add:
+
+* A `provider` or `routed_to` header or response field
+* Any internal routing identifier or upstream backend URL
+* Any header that tells a caller which upstream served the request
+
+ClearMaas is a single provider from your application's point of view.
+Internal routing is our concern, not your dependency.

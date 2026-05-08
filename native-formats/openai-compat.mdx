@@ -1,0 +1,46 @@
+---
+title: "OpenAI-compatible HTTP"
+description: "Raw HTTP shape for /v1/chat/completions and /v1/responses."
+icon: "code"
+---
+
+The OpenAI-compatible surface covers Chat Completions, Responses, and
+all related endpoints. It's the path that OpenAI / DeepSeek / xAI Grok /
+Alibaba Qwen / Moonshot Kimi / MiniMax models use, and it also serves
+Anthropic and Gemini models via translation.
+
+## /v1/chat/completions
+
+```bash
+curl https://api.clearmaas.com/v1/chat/completions \
+  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openai/gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'
+```
+
+## /v1/responses
+
+```bash
+curl https://api.clearmaas.com/v1/responses \
+  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openai/gpt-5",
+    "input": "Hello"
+  }'
+```
+
+OpenAI models **and xAI Grok models** are supported here — xAI's
+Agent Tools API uses the same shape. Anthropic and Gemini models
+return `not_implemented` because their native shapes differ; call
+`/v1/messages` or `/v1beta/.../generateContent` for those.
+
+## See also
+
+* [API Reference / Chat](/api-reference/chat/create-a-chat-completion) — full schema with try-it
+* [Advanced / Streaming](/advanced/streaming) — SSE shape
+* [Native Formats / Anthropic](/native-formats/anthropic) — Anthropic native protocol
+* [Native Formats / Gemini](/native-formats/gemini) — Gemini native protocol

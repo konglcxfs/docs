@@ -1,0 +1,42 @@
+---
+title: "Anthropic SDK"
+description: "Point the official Anthropic SDK at ClearMaas to call Claude models via /v1/messages."
+icon: "bug"
+---
+
+## Quick start
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    base_url="https://api.clearmaas.com",
+    api_key="sk-clearmaas-...",
+)
+
+response = client.messages.create(
+    model="anthropic/claude-sonnet-4.6",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+)
+print(response.content[0].text)
+```
+
+The Anthropic SDK appends `/v1/messages` to your `base_url` itself,
+so the bare host (without `/v1`) is the right form. Requests land on
+`https://api.clearmaas.com/v1/messages` — ClearMaas's first-class
+Anthropic surface. Native SSE events (`message_start`,
+`content_block_delta`, `message_stop`, ...) come through directly, and
+streaming, tool use, prompt caching (`cache_control`), and vision all
+work end-to-end.
+
+The SDK uses the standard `x-api-key` header to send `api_key` —
+ClearMaas's auth middleware recognizes that form on Anthropic-shape
+paths, so no header munging is required. See
+[Get an API key](/getting-started/get-api-key#how-to-send-the-key)
+for the full table of accepted auth headers.
+
+## See also
+
+* [Native Formats / Anthropic](/native-formats/anthropic) — the raw HTTP shape
+* [Models](/getting-started/models) — full Claude model list

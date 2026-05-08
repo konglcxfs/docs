@@ -1,0 +1,90 @@
+---
+title: "GET List available models"
+description: "GET /v1/models — returns all models your account has access to."
+icon: "list"
+---
+
+<div className="flex items-center gap-3 mb-6">
+  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+    GET
+  </span>
+  <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
+    List available models
+  </span>
+</div>
+
+## OpenAPI
+
+````yaml /openapi.yaml get /models
+openapi: 3.1.0
+info:
+  title: ClearMaas API
+  version: '2026.04'
+  description: ClearMaas is an OpenAI-compatible API gateway.
+  contact:
+    name: ClearMaas Support
+    email: support@clearmaas.com
+    url: https://clearmaas.com
+servers:
+  - url: https://api.clearmaas.com/v1
+    description: Production
+security:
+  - bearerAuth: []
+paths:
+  /models:
+    get:
+      tags:
+        - Models
+      summary: List available models
+      operationId: listModels
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelList'
+components:
+  schemas:
+    ModelList:
+      type: object
+      properties:
+        object:
+          type: string
+          enum: [list]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Model'
+    Model:
+      type: object
+      properties:
+        id:
+          type: string
+          example: openai/gpt-4o-mini
+        object:
+          type: string
+          enum: [model]
+        created:
+          type: integer
+        owned_by:
+          type: string
+          example: openai
+        supported_endpoint_types:
+          type: array
+          items:
+            type: string
+          example: [openai]
+        context_length:
+          type: integer
+          description: Maximum context window in tokens.
+        max_completion_tokens:
+          type: integer
+          description: Maximum tokens per response.
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key (sk-clearmaas-...)
+      description: Pass `Authorization: Bearer sk-clearmaas-...` header.
+````

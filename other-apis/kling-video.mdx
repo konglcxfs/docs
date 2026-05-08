@@ -1,0 +1,319 @@
+---
+title: "Kling Video"
+description: "Async video generation via /v1/video/generations."
+icon: "film"
+---
+
+ClearMaas speaks Kling natively for video generation. You submit a task,
+poll the task ID for its status, and pick up the rendered MP4 once the
+upstream finishes (typically 30 - 90 seconds).
+
+This async submit-then-poll pattern is unique to video. Chat / images / TTS
+all use synchronous request-response; Kling video does not.
+
+## Models
+
+All models support text-to-video and image-to-video. Advanced features
+vary:
+
+| Model | Multi-source ref | 4K | Native audio | Multi-shot |
+| ------------------------- | :---------------: | :-: | :-----------: | :--------: |
+| `kling/kling-v2-master` | | | | |
+| `kling/kling-v2-1-master` | | | | |
+| `kling/kling-v2-5-turbo` | | | | |
+| `kling/kling-v2-6` | | | Pro mode | |
+| `kling/kling-v3` | | Yes | Yes | Yes |
+| `kling/kling-video-o1` | Yes (limited) | | | |
+| `kling/kling-v3-omni` | Yes (full) | Yes | Yes | Yes |
+
+Multi-source reference = the `image_list` / `video_list` metadata
+fields. Routes to Kling's Omni-Video upstream endpoint when present.
+`kling/kling-video-o1` is a constrained subset (5s/10s only, no multi-shot,
+no audio); pick `kling/kling-v3-omni` for the full Omni surface.
+
+Native audio = Kling auto-generates a soundtrack matching the video.
+Bills extra upstream. Toggle via `metadata.sound: "on"`.
+
+The submit endpoint is the same for all models —
+`POST /v1/video/generations`. What changes is which `metadata` fields
+the upstream honors per the table above.
+
+## Submit a task
+
+Send a POST to `/v1/video/generations` with `model`, `prompt`, and any
+upstream-specific parameters under `metadata`:
+
+```bash
+curl https://api.clearmaas.com/v1/video/generations \
+  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "kling/kling-v3-omni",
+    "prompt": "cat playing piano in a sunny room",
+    "metadata": {
+      "mode": "std",
+      "aspect_ratio": "16:9",
+      "duration": "5"
+    }
+  }'
+```
+
+Response carries the task ID:
+
+```json
+{
+  "id": "task_9q9oz6tjtgABYWC1QIqoz3sscgVz7ycw",
+  "task_id": "task_9q9oz6tjtgABYWC1QIqoz3sscgVz7ycw",
+  "object": "video",
+  "model": "kling/kling-v3-omni",
+  "status": "queued",
+  "progress": 0,
+  "created_at": 1777975188
+}
+```
+
+<Note>
+  POST returns lowercase `status: "queued"`. GET returns a wrapped
+  envelope with uppercase status (`SUBMITTED` / `IN_PROGRESS` / `SUCCESS` /
+  `FAILURE`) — see Poll for results below.
+</Note>
+
+### Common metadata fields
+
+These three apply to every endpoint variant:
+
+| Field | Type | Notes |
+| -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mode` | string | `std` (720P) / `pro` (1080P) / `4k`. `4k` only on `kling/kling-v3` and `kling/kling-v3-omni`. Default is `std` for text/image-to-video, `pro` for Omni-Video. |
+| `aspect_ratio` | string | `16:9` / `9:16` / `1:1`. Required on Omni-Video unless you supply a first-frame reference or `video_list` (in those cases it's inferred from the input). |
+| `duration` | string | Length in seconds. Defaults to `"5"`. `kling/kling-v3-omni` and `kling/kling-v3` accept `"3"` through `"15"`. v2 family (`v2-master`, `v2-1-master`, `v2-5-turbo`, `v2-6`) and `kling/kling-video-o1` accept `"5"` or `"10"`. |
+
+These two work on text-to-video and image-to-video only (not Omni-Video):
+
+| Field | Type | Notes |
+| ----------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `negative_prompt` | string | Things to avoid. Max 2500 chars. |
+| `cfg_scale` | float | Range `[0, 1]`, default `0.5`. Higher = stricter prompt adherence. **Not supported on v2.x models** (`kling-v2-master` / `v2-1-master` / `v2-5-turbo` / `v2-6`). |
+
+## Poll for results
+
+Use the task ID returned at submit time:
+
+```bash
+curl https://api.clearmaas.com/v1/video/generations/task_9q9oz6tjtgABYWC1QIqoz3sscgVz7ycw \
+  -H "Authorization: Bearer sk-clearmaas-..."
+```
+
+Response shape is wrapped:
+
+```json
+{
+  "code": "success",
+  "message": "",
+  "data": {
+    "task_id": "task_9q9oz6tjtgABYWC1QIqoz3sscgVz7ycw",
+    "status": "SUCCESS",
+    "progress": "100%",
+    "result_url": "https://v16-kling-fdl.klingai.com/.../video.mp4?...",
+    "action": "omniVideo",
+    "submit_time": 1777975188,
+    "start_time": 1777975241,
+    "finish_time": 1777975277,
+    "fail_reason": ""
+  }
+}
+```
+
+Status values (uppercase, raw task state):
+
+| Status | Meaning |
+| ------------- | ------------------------------------------------------------------ |
+| `NOT_START` | Task row created, not yet dispatched (transient, usually under 2s) |
+| `SUBMITTED` | Sent to Kling upstream, waiting in their queue |
+| `IN_PROGRESS` | Kling is rendering |
+| `SUCCESS` | Done. `data.result_url` carries the MP4 |
+| `FAILURE` | Failed. `data.fail_reason` has the reason |
+
+Progress comes back as a percent **string** (`"30%"`, `"100%"`), not an int.
+
+Poll every 5 - 10 seconds. A typical std 5-second clip completes in 30 - 60
+seconds; 4K, 15-second, and multi-shot tasks take 2 - 5 minutes.
+
+`data.result_url` is a Kling-signed URL (note the `ksTime` / `ksSecret`
+query params). Download or rehost promptly if you need long retention —
+the signature has an upstream-defined expiry.
+
+## Endpoint variants
+
+All three variants share `POST /v1/video/generations`. The endpoint Kling
+actually serves is determined by which fields you supply.
+
+### Text-to-video
+
+Just `model` + `prompt` (+ optional metadata above). No image input means
+text-to-video:
+
+```bash
+curl https://api.clearmaas.com/v1/video/generations \
+  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "kling/kling-v2-6",
+    "prompt": "ocean waves at sunset, cinematic",
+    "metadata": {"mode": "pro", "duration": "5"}
+  }'
+```
+
+### Image-to-video
+
+Add a top-level `image` (first frame) and / or `metadata.image_tail` (last
+frame) for first / last frame i2v:
+
+```bash
+curl https://api.clearmaas.com/v1/video/generations \
+  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "kling/kling-v2-master",
+    "prompt": "the cat starts dancing",
+    "image": "https://example.com/cat.png",
+    "metadata": {"mode": "std", "duration": "5"}
+  }'
+```
+
+### Multi-source reference (Omni-Video)
+
+`image_list` and `video_list` route the request to Kling's Omni-Video
+endpoint. Available only on `kling/kling-video-o1` and `kling/kling-v3-omni`.
+
+**`image_list`** — multi-image reference:
+
+```json
+{ "image_list": [{ "image_url": "...", "type": "first_frame" }] }
+```
+
+* `image_url` (required): URL or raw base64 (no `data:` prefix).
+* `type` (optional): `first_frame` / `end_frame`. Omit unless the image
+  is meant as a frame anchor. End-only is not supported (always pair with
+  a first-frame image).
+
+**`video_list`** — video reference (max 1 video, MP4/MOV, ≤200MB):
+
+```json
+{ "video_list": [{ "video_url": "...", "refer_type": "base", "keep_original_sound": "yes" }] }
+```
+
+* `refer_type`: `base` (video editing — input video is edited; default)
+  or `feature` (style/composition reference — generate next/previous shot).
+* `keep_original_sound`: `yes` / `no`.
+* On `kling/kling-v3-omni`, video reference is supported only at 3-10s
+  duration, std/pro mode (not 4K).
+
+<Note>
+  When `video_list` is set, `metadata.sound` must be `"off"` —
+  Kling rejects the combination otherwise.
+</Note>
+
+Reference images / videos / elements inside the prompt with the
+`<<<>>>` syntax: `<<<image_1>>>`, `<<<video_1>>>`, `<<<element_1>>>`.
+Omni-only. The index matches the array order (1-based).
+
+```bash
+curl https://api.clearmaas.com/v1/video/generations \
+  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "kling/kling-v3-omni",
+    "prompt": "<<<image_1>>> waves at the camera, then walks toward the ocean",
+    "metadata": {
+      "image_list": [{"image_url": "https://example.com/person.jpg"}],
+      "mode": "pro",
+      "aspect_ratio": "16:9",
+      "duration": "5",
+      "sound": "on"
+    }
+  }'
+```
+
+## Advanced features
+
+These features work across text-to-video, image-to-video, and Omni-Video
+endpoints — model support varies. Pass them via `metadata`.
+
+### Multi-shot
+
+Generate a video composed of multiple sequential shots, each with its
+own prompt and duration. Available on `kling/kling-v3` and `kling/kling-v3-omni`.
+
+| Field | Type | Purpose |
+| -------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `multi_shot` | bool | Set `true` to enable. Top-level `prompt` and first/end-frame inputs are then ignored. |
+| `shot_type` | string | `customize` (use `multi_prompt` literally) or `intelligence` (Kling auto-segments). Required when `multi_shot=true`. |
+| `multi_prompt` | array | `[{index, prompt, duration}]`. 1 - 6 storyboards. Each shot's `duration` ≥ 1s; sum must equal the task's total `duration`. Each `prompt` ≤ 512 chars. |
+
+### Native audio
+
+Kling auto-generates a soundtrack matching the video. Bills extra
+upstream. Toggle via `metadata.sound: "on"` (default `"off"`).
+
+Model support:
+
+* `kling/kling-v3` and `kling/kling-v3-omni`: any mode (std / pro / 4K)
+* `kling/kling-v2-6`: pro mode only
+* All other models: not supported
+
+### Watermark
+
+Pass `metadata.watermark_info: {enabled: true}` to imprint Kling's
+watermark on the rendered video. Default is no watermark.
+
+## Billing
+
+Kling video bills per task. ClearMaas charges exactly what Kling charges —
+the upstream `final_unit_deduction` becomes the wallet debit, with no
+markup. Final cost matches Kling's published rate card.
+
+A small pre-consume hold is reserved at submit time to cover the highest
+plausible cost for your request (e.g. 4K + audio); the difference is
+refunded as soon as the task succeeds.
+
+See your wallet history in the console for actual per-task spend.
+
+## Using the Kling SDK directly
+
+If you already have code written against Kling's official SDK, ClearMaas
+also speaks Kling's native wire format on `/kling/v1/videos/...`. Body
+fields stay flat (`model_name`, `mode`, etc.) — only the base URL,
+`Authorization` header, and `model_name` value change:
+
+```bash
+curl https://api.clearmaas.com/kling/v1/videos/omni-video \
+  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model_name": "kling/kling-v3-omni",
+    "prompt": "cat playing piano",
+    "mode": "pro",
+    "aspect_ratio": "16:9",
+    "duration": "5",
+    "sound": "on"
+  }'
+```
+
+<Note>
+  `model_name` must use the ClearMaas-side model identity (the same name
+  you'd use on `/v1/video/generations`), not Kling's bare model name.
+  ClearMaas resolves it through the channel's model mapping before
+  forwarding to Kling.
+</Note>
+
+The corresponding fetch path is
+`GET /kling/v1/videos/omni-video/{task_id}` (or `text2video`, `image2video`).
+
+Pick whichever wire format matches your existing code. Both bill identically.
+
+## See also
+
+* [API Reference / Video](/api-reference/video/submit-a-video-task) — full schema with try-it
+* [Operations / Billing & Usage](/operations/billing-and-usage)
+* [Operations / Errors](/operations/errors)

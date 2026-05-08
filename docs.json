@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "ClearMaas",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -19,37 +19,66 @@
           {
             "group": "Getting started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "getting-started/quickstart",
+              "getting-started/get-api-key",
+              "getting-started/models"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Routing",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "routing/auto-router",
+              "routing/model-fallbacks",
+              "routing/named-routers",
+              "routing/response-headers"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Advanced",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/components",
-              "essentials/reusable-snippets"
+              "advanced/reasoning",
+              "advanced/structured-outputs",
+              "advanced/tool-calling",
+              "advanced/web-search",
+              "advanced/streaming",
+              "advanced/audio-input",
+              "advanced/vision"
             ]
           },
           {
-            "group": "Agent ready",
+            "group": "Native Formats",
             "pages": [
-              "agent-ready/prompt",
-              "agent-ready/visibility",
-              "agent-ready/contextual",
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "native-formats/anthropic",
+              "native-formats/openai-compat",
+              "native-formats/gemini"
+            ]
+          },
+          {
+            "group": "Compatibility",
+            "pages": [
+              "compatibility/openai-sdk",
+              "compatibility/anthropic-sdk",
+              "compatibility/google-genai-sdk",
+              "compatibility/frameworks"
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "operations/errors",
+              "operations/rate-limits",
+              "operations/billing-and-usage",
+              "operations/data-handling",
+              "operations/zero-data-retention"
+            ]
+          },
+          {
+            "group": "Other",
+            "pages": [
+              "other-apis/kling-video",
+              "other-apis/images",
+              "other-apis/tts"
             ]
           }
         ]
@@ -58,72 +87,66 @@
         "tab": "API reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Chat",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/chat/create-a-chat-completion"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Messages",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/messages/create-a-message"
+            ]
+          },
+          {
+            "group": "Responses",
+            "pages": [
+              "api-reference/responses/create-a-response"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "api-reference/models/list-available-models",
+              "api-reference/models/get-model-details"
+            ]
+          },
+          {
+            "group": "Images",
+            "pages": [
+              "api-reference/images/create-an-image"
+            ]
+          },
+          {
+            "group": "Audio",
+            "pages": [
+              "api-reference/audio/generate-speech"
+            ]
+          },
+          {
+            "group": "Video",
+            "pages": [
+              "api-reference/video/submit-a-video-task",
+              "api-reference/video/fetch-video-task-status"
+            ]
+          },
+          {
+            "group": "Gemini Native",
+            "pages": [
+              "api-reference/gemini-native/gemini-native-generate"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/clearmaas"
     }
   }
 }

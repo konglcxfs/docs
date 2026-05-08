@@ -1,0 +1,66 @@
+---
+title: "Named Routers"
+description: "Save a routing strategy and invoke it by name."
+icon: "bookmark"
+---
+
+ClearMaas lets you save a routing strategy as a named router. Call it
+from your code as `clearmaas/{name}` and ClearMaas resolves it to a
+concrete model at request time, based on the rules you configured.
+
+This is useful when you want to:
+
+* Swap routing behavior without redeploying your app (change the router
+  in the dashboard; your code stays the same).
+* Let different teams or services choose their own routing policy
+  independently of the application that calls the API.
+* Reference routing logic that's too complex to inline in `extra_body`.
+
+## Using a router
+
+<CodeGroup>
+  ```python Python
+response = client.chat.completions.create(
+    model="clearmaas/production-chat",
+    messages=[...],
+)
+  ```
+
+  ```ts TypeScript
+const response = await openai.chat.completions.create({
+  model: "clearmaas/production-chat",
+  messages: [...],
+});
+  ```
+</CodeGroup>
+
+To find out which concrete model a router resolved to, read the
+`X-Clear-Router` and `X-Clear-Resolved-Model` response headers — see
+[Response Headers](/routing/response-headers). The `model` field in
+the response body itself reflects whatever the upstream returned (often
+the bare upstream name, e.g. `gpt-4o-mini-2024-07-18`).
+
+## Creating a router
+
+Routers are created in the dashboard under **Routing**. Each router has:
+
+* **Name** — the `{name}` in `clearmaas/{name}`. Must be unique within
+  your workspace; lowercase letters, digits, `_`, and `-` (1-50 chars).
+  The name `clearmaas` is reserved.
+* **Allowed models** — one or more glob patterns (comma- or
+  newline-separated, case-insensitive) limiting which models this
+  router can pick. Examples: `openai/*` or
+  `openai/*, anthropic/claude-haiku-*`. Empty matches every model
+  your account has access to.
+* **Strategy** — how to pick among matching models. Three options:
+  `cheapest` (lowest per-token price among live candidates), `quality`,
+  and `balanced` (the default for new routers).
+* **Default model** — a safety-net model used if the pattern resolves
+  to nothing.
+* **Enabled** — disable the router without deleting it.
+
+## Seeded router: `clearmaas/auto`
+
+Every ClearMaas account is seeded with a default router called `auto`
+on signup — see [Auto Router](/routing/auto-router). You can use
+it immediately without any configuration.

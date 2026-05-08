@@ -1,0 +1,103 @@
+---
+title: "Errors"
+description: "HTTP status codes, error envelope, and how to handle upstream vs ClearMaas errors."
+icon: "info"
+---
+
+## Error envelope
+
+Most error responses use this OpenAI-compatible JSON shape:
+
+```json
+{
+  "error": {
+    "message": "Descriptive error message",
+    "type": "clearmaas_api_error",
+    "code": "model_not_found"
+  }
+}
+```
+
+`type` is a broad category, `code` is a specific identifier. Some
+fast-path failures (notably workspace-level 429s) return only an HTTP
+status code with the relevant headers and no JSON body.
+
+## HTTP status codes
+
+| Status | Meaning | Typical cause |
+| ------ | ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `400` | Bad request | Invalid parameters, missing required fields, schema violation |
+| `401` | Unauthorized | Missing or invalid API key |
+| `403` | Forbidden | Insufficient quota, or the key cannot call this model |
+| `404` | Not found | Model or endpoint doesn't exist |
+| `429` | Too many requests | Rate limit hit — see [Rate Limits](/operations/rate-limits). Response always includes a `Retry-After` header. |
+| `500` | Internal error | ClearMaas-side bug |
+| `502` | Upstream error | All upstream providers failed (including any fallback chain) |
+| `503` | Service unavailable | The requested model is temporarily unavailable upstream |
+
+## Error types you may see in `error.type`
+
+| `error.type` | Where it comes from |
+| ---------------------- | --------------------------------------------------------- |
+| `clearmaas_api_error` | Gateway-side failures (auth, quota, rate-limit, internal) |
+| `upstream_error` | The upstream provider returned an error or timed out |
+| `openai_error` | OpenAI-compat upstream error preserved verbatim |
+| `claude_error` | Anthropic upstream error preserved verbatim |
+| `gemini_error` | Gemini upstream error preserved verbatim |
+
+## Error codes you may see in `error.code`
+
+These are gateway-issued codes for failures that originate in
+ClearMaas (not the upstream):
+
+| `error.code` | HTTP | Meaning |
+| -------------------------- | ---- | ------------------------------------------------------------- |
+| `insufficient_user_quota` | 403 | Account credit exhausted. Top up. |
+| `model_not_found` | 503 | This model is not available for your account. |
+| `model_price_error` | 400 | Pricing for this model is not set up. Contact support. |
+| `api_not_implemented` | 400 | Endpoint or operation not supported for the model you picked. |
+| `bad_request_body` | 400 | Request body could not be parsed. |
+| `prompt_blocked` | 400 | Provider safety policy blocked the prompt before generation. |
+| `sensitive_words_detected` | 400 | Sensitive-content filter rejected the prompt. |
+
+If you need to programmatically distinguish, match on `error.code`
+first (specific) and fall back to `error.type` (broad category).
+
+## Streaming errors
+
+Errors during a streamed response can't use HTTP status codes (the
+status was sent when the stream opened). The format depends on the
+endpoint:
+
+### `/v1/chat/completions` and `/v1/responses` (OpenAI-compatible)
+
+The error arrives as an in-band `data: {...}` chunk:
+
+```
+data: {"error":{"message":"...","type":"upstream_error","code":""}}
+
+data: [DONE]
+```
+
+Parse each `data:` chunk as JSON; if it has an `error` field, treat
+the stream as failed.
+
+### `/v1/messages` (Anthropic-compatible)
+
+Anthropic uses SSE named events. A stream failure arrives as:
+
+```
+event: error
+data: {"type":"error","error":{"type":"overloaded_error","message":"..."}}
+```
+
+The stream terminates with `event: message_stop` (or is cut) after
+the error event.
+
+## Fallback errors
+
+When `extra_body.models` is set and all models in the chain fail, you
+get a `502` with details about the last upstream error. Response
+headers `X-Clear-Fallback-Level` and `X-Clear-Fallback-Model` indicate
+which fallback was being tried when the chain exhausted. See
+[Response Headers](/routing/response-headers).

@@ -1,0 +1,89 @@
+---
+title: "Billing & usage"
+description: "How ClearMaas computes charges, the usage object, and ClearMaas-specific response headers."
+icon: "credit-card"
+---
+
+## What you pay
+
+ClearMaas charges you the **upstream provider's published per-token
+price**, with no per-token markup. Revenue comes from optional paid
+subscription plans, not from inflating your token cost.
+
+## The `usage` object
+
+Every chat/responses response includes a `usage` field:
+
+```json
+{
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 34,
+    "total_tokens": 46
+  }
+}
+```
+
+Reasoning models add `completion_tokens_details.reasoning_tokens` for
+the hidden reasoning pass.
+
+## Built-in tool charges
+
+When the response uses a built-in / server-side tool, the call is
+counted and billed on top of token usage. ClearMaas passes the
+upstream provider's per-call rate through with no markup; refer to
+each provider's pricing page for current rates.
+
+Tools that trigger per-call charges across providers:
+
+* **OpenAI** — `web_search`, `web_search_preview`, `image_generation`
+  (Responses API built-in tools)
+* **Anthropic** — `web_search` (server tool)
+* **Google Gemini** — `googleSearch` grounding (per grounded prompt
+  on Gemini 2.x family; per query on Gemini 3.x family)
+* **xAI Grok** — `web_search`, `x_search`, `code_interpreter`
+  (Agent Tools API on `/v1/responses`)
+
+Specific OpenAI rates currently passed through:
+
+| Tool | Per-call rate |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `web_search` | $10 per 1,000 calls (unified across models) |
+| `web_search_preview` | $10 / 1k for reasoning models (`o3*`, `o4*`, `gpt-5*`); $25 / 1k for non-reasoning models (`gpt-4o*`, `gpt-4.1*`, etc.) |
+
+For other providers' server-tool rates, see each provider's official
+pricing page.
+
+## ClearMaas response headers
+
+| Header | When set |
+| ----------------------- | ---------------------------------------------------- |
+| `X-Clear-Fallback-Level` | Index of the fallback model that served the response |
+| `X-Clear-Fallback-Model` | Name of the fallback model |
+| `X-Clear-Router` | Name of the `clearmaas/{name}` router used |
+| `X-Clear-Resolved-Model` | Concrete model a named router resolved to |
+
+See [Routing / Response Headers](/routing/response-headers) for use cases.
+
+## Looking up your usage
+
+The Dashboard at [clearmaas.com/console](https://clearmaas.com/console)
+shows daily spend, total spend over a chosen window, and a per-model
+breakdown. The Dashboard does not currently break spend down per API
+key — costs are aggregated at the workspace level.
+
+Two OpenAI-shape billing endpoints are also exposed for programmatic
+access:
+
+```bash
+# Total usage so far (returns an OpenAIUsageResponse with TotalUsage)
+curl https://api.clearmaas.com/v1/dashboard/billing/usage \
+  -H "Authorization: Bearer sk-clearmaas-..."
+
+# Remaining quota and expiry (returns OpenAISubscriptionResponse)
+curl https://api.clearmaas.com/v1/dashboard/billing/subscription \
+  -H "Authorization: Bearer sk-clearmaas-..."
+```
+
+These are summary endpoints — they don't include OpenAI's full
+historical day-by-day breakdown.
