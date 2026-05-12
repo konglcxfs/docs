@@ -32,7 +32,8 @@
               "routing/model-fallbacks",
               "routing/named-routers",
               "routing/response-headers"
-            ]
+            ],
+            "hidden": true
           },
           {
             "group": "Advanced",
@@ -44,7 +45,8 @@
               "advanced/streaming",
               "advanced/audio-input",
               "advanced/vision"
-            ]
+            ],
+            "hidden": true
           },
           {
             "group": "Native Formats",
@@ -52,7 +54,8 @@
               "native-formats/anthropic",
               "native-formats/openai-compat",
               "native-formats/gemini"
-            ]
+            ],
+            "hidden": true
           },
           {
             "group": "Compatibility",
@@ -61,7 +64,8 @@
               "compatibility/anthropic-sdk",
               "compatibility/google-genai-sdk",
               "compatibility/frameworks"
-            ]
+            ],
+            "hidden": true
           },
           {
             "group": "Operations",
@@ -71,7 +75,8 @@
               "operations/billing-and-usage",
               "operations/data-handling",
               "operations/zero-data-retention"
-            ]
+            ],
+            "hidden": true
           },
           {
             "group": "Other",
@@ -79,7 +84,8 @@
               "other-apis/kling-video",
               "other-apis/images",
               "other-apis/tts"
-            ]
+            ],
+            "hidden": true
           }
         ]
       },
