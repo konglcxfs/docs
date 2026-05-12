@@ -1,0 +1,68 @@
+---
+title: "AI Agents"
+description: "Connect Claude Code, Codex CLI, OpenCode, Hermes Agent, Zed, TRAE IDE, and more to ClearMaas for unified access to 570+ models."
+icon: "robot"
+---
+
+ClearMaas is an OpenAI-compatible API gateway that works with any AI agent tool supporting custom base URL or API key configuration. Through a single endpoint, access 570+ models — Claude, GPT, Grok, DeepSeek, Qwen, GLM, Kimi, Doubao, and more — at provider cost price.
+
+## Supported agents
+
+| Agent | Protocol | Quick setup |
+|---|---|---|
+| [Claude Code](/integrations/claude-code) | Anthropic | 2 env vars |
+| [Codex CLI](/integrations/codex-cli) | OpenAI | 2 env vars |
+| [OpenCode](/integrations/opencode) | OpenAI | JSON config |
+| [Hermes Agent](/integrations/hermes-agent) | OpenAI | YAML config |
+| [Zed Editor](/integrations/zed) | OpenAI | Settings UI |
+| [TRAE IDE](/integrations/trae-ide) | OpenAI / Anthropic | Settings UI |
+| [WorkBuddy](/integrations/workbuddy) | OpenAI | Settings UI |
+| [OpenClaw](/integrations/openclaw) | OpenAI | JSON config |
+
+## Connection patterns
+
+Most agents follow one of two patterns:
+
+| Pattern | Base URL | API Key env var |
+|---|---|---|
+| OpenAI-compatible | `https://api.clearmaas.com/v1` | `OPENAI_API_KEY` |
+| Anthropic-compatible | `https://api.clearmaas.com` | `ANTHROPIC_API_KEY` |
+
+Set the corresponding environment variable and all model requests route through ClearMaas automatically.
+
+## Model naming
+
+ClearMaas uses `provider/model-name` prefixes. You can switch providers without changing tools:
+
+| Prefix | Example model ID |
+|---|---|
+| `openai/` | `openai/gpt-4o-mini` |
+| `anthropic/` | `anthropic/claude-sonnet-4.6` |
+| `google/` | `google/gemini-2.5-pro` |
+| `deepseek/` | `deepseek/deepseek-chat` |
+| `grok/` | `grok/grok-4-fast-reasoning` |
+| `qwen/` | `qwen/qwen3.6-plus` |
+| `kimi/` | `kimi/kimi-k2.6` |
+| `minimax/` | `minimax/minimax-m2.7` |
+
+See [Model reference](/getting-started/models) for the full list.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="terminal" href="/integrations/claude-code">
+    Anthropic's official agentic CLI — 2 environment variables to connect.
+  </Card>
+
+  <Card title="Codex CLI" icon="terminal" href="/integrations/codex-cli">
+    OpenAI's official coding agent via custom provider in config.
+  </Card>
+
+  <Card title="OpenCode" icon="terminal" href="/integrations/opencode">
+    Terminal TUI assistant with JSON config for any provider.
+  </Card>
+
+  <Card title="Model reference" icon="database" href="/getting-started/models">
+    Browse all 570+ available models and their IDs.
+  </Card>
+</CardGroup>

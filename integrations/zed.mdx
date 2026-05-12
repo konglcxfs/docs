@@ -1,0 +1,129 @@
+---
+title: "Zed Editor"
+description: "Add ClearMaas as a custom OpenAI-compatible provider in Zed's AI settings."
+icon: "file-code"
+---
+
+[Zed](https://zed.dev) is a modern GPU-accelerated code editor with first-class AI support through the Agent Panel. Add ClearMaas as a custom OpenAI-compatible provider to access 570+ models directly in your editor.
+
+## Prerequisites
+
+- Zed installed ([zed.dev](https://zed.dev))
+- A ClearMaas API key starting with `sk-clearmaas-`
+
+## Setup via Agent Panel (UI)
+
+The simplest setup path:
+
+1. Open Zed settings: `Cmd+,` (macOS) or `Ctrl+,` (Linux/Windows)
+2. Navigate to **AI > Providers**
+3. Find **OpenAI API Compatible** and expand it
+4. Enter your API key in the input field and press Enter
+
+API keys are stored in your OS's secure credential storage, not as plain text.
+
+## Setup via settings file
+
+For programmatic or repeatable configuration, edit `settings.json` directly:
+
+1. Open the settings file: `Cmd+Shift+P` → "Open Settings File (JSON)"
+2. Add the `language_models` section:
+
+```json
+{
+  "language_models": {
+    "openai": {
+      "api_url": "https://api.clearmaas.com/v1",
+      "available_models": [
+        {
+          "name": "anthropic/claude-sonnet-4.6",
+          "display_name": "Claude Sonnet 4.6",
+          "max_tokens": 200000
+        },
+        {
+          "name": "openai/gpt-4o-mini",
+          "display_name": "GPT-4o Mini",
+          "max_tokens": 128000
+        },
+        {
+          "name": "deepseek/deepseek-chat",
+          "display_name": "DeepSeek Chat",
+          "max_tokens": 64000
+        }
+      ]
+    }
+  }
+}
+```
+
+Then add your API key via the Agent Panel UI (`agent: open settings`), or set it as a header in settings:
+
+```json
+{
+  "language_models": {
+    "openai": {
+      "api_url": "https://api.clearmaas.com/v1",
+      "api_key": "sk-clearmaas-...",
+      "available_models": [
+        {
+          "name": "anthropic/claude-sonnet-4.6",
+          "display_name": "Claude Sonnet 4.6",
+          "max_tokens": 200000
+        }
+      ]
+    }
+  }
+}
+```
+
+## Selecting a provider and model
+
+After adding the provider:
+
+1. Open the Agent Panel: `Cmd+Shift+A`
+2. Click the model selector dropdown
+3. Choose **OpenAI API Compatible** as the provider
+4. Select your desired model from the list
+
+To set a default provider, add to `settings.json`:
+
+```json
+{
+  "assistant": {
+    "default_model": {
+      "provider": "openai",
+      "model": "anthropic/claude-sonnet-4.6"
+    }
+  }
+}
+```
+
+## Available model options
+
+Configure any ClearMaas model by adding it to `available_models`. Common options:
+
+| Model ID | Display name | Max tokens |
+|---|---|---|
+| `anthropic/claude-sonnet-4.6` | Claude Sonnet 4.6 | 200K |
+| `anthropic/claude-opus-4.8` | Claude Opus 4.8 | 200K |
+| `anthropic/claude-haiku-4.5` | Claude Haiku 4.5 | 200K |
+| `openai/gpt-4o-mini` | GPT-4o Mini | 128K |
+| `openai/gpt-4o` | GPT-4o | 128K |
+| `google/gemini-2.5-pro` | Gemini 2.5 Pro | 1M |
+| `deepseek/deepseek-chat` | DeepSeek Chat | 64K |
+| `grok/grok-4-fast-reasoning` | Grok 4 Fast | 131K |
+
+## Verification
+
+1. Open the Agent Panel (`Cmd+Shift+A`)
+2. Select **OpenAI API Compatible** as provider
+3. Select a model (e.g., `anthropic/claude-sonnet-4.6`)
+4. Ask a question — verify the response comes through
+
+Check your ClearMaas dashboard to confirm the request was routed.
+
+## See also
+
+- [API key setup](/getting-started/get-api-key)
+- [Model reference](/getting-started/models)
+- [Zed AI docs](https://zed.dev/docs/ai/llm-providers)

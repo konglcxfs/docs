@@ -1,0 +1,117 @@
+---
+title: "WorkBuddy"
+description: "Add ClearMaas as a custom OpenAI-compatible model in WorkBuddy (Tencent Cloud CodeBuddy) via settings or models.json."
+icon: "briefcase"
+---
+
+[WorkBuddy](https://codebuddy.co/workbuddy) (also known as Tencent Cloud CodeBuddy) is an AI task automation component of the CodeBuddy ecosystem. Add ClearMaas as a custom OpenAI-compatible model provider to use any of the 570+ models in your coding workflows.
+
+## Prerequisites
+
+- WorkBuddy / CodeBuddy installed ([codebuddy.cn](https://codebuddy.cn))
+- A ClearMaas API key starting with `sk-clearmaas-`
+
+## Setup via models.json
+
+WorkBuddy supports file-based model configuration. Create or edit `models.json`:
+
+**User-level** (all projects): `~/.codebuddy/models.json`
+**Project-level** (single project): `.codebuddy/models.json`
+
+Project-level settings override user-level for matching model IDs.
+
+### Adding ClearMaas
+
+```json
+{
+  "models": [
+    {
+      "id": "clearmaas-claude-sonnet",
+      "name": "Claude Sonnet via ClearMaas",
+      "vendor": "OpenAI",
+      "apiKey": "sk-clearmaas-...",
+      "maxInputTokens": 200000,
+      "maxOutputTokens": 8192,
+      "url": "https://api.clearmaas.com/v1/chat/completions",
+      "supportsToolCall": true,
+      "supportsImages": true
+    },
+    {
+      "id": "clearmaas-gpt-4o-mini",
+      "name": "GPT-4o Mini via ClearMaas",
+      "vendor": "OpenAI",
+      "apiKey": "sk-clearmaas-...",
+      "maxInputTokens": 128000,
+      "maxOutputTokens": 16384,
+      "url": "https://api.clearmaas.com/v1/chat/completions",
+      "supportsToolCall": true,
+      "supportsImages": true
+    }
+  ]
+}
+```
+
+Key fields:
+
+| Field | Description |
+|---|---|
+| `url` | Full path to the chat completions endpoint (must include `/chat/completions`) |
+| `vendor` | Must be `"OpenAI"` — only OpenAI interface format is supported |
+| `supportsToolCall` | Enable tool/function calling support |
+| `supportsImages` | Enable image input (vision) |
+
+## Setup via UI
+
+Since 2025, WorkBuddy supports graphical model configuration:
+
+1. Open WorkBuddy settings
+2. Navigate to **Models** or **AI Settings**
+3. Click **Add Custom Model** or **Add Provider**
+4. Fill in:
+
+| Field | Value |
+|---|---|
+| Provider | **OpenAI Compatible** |
+| API Key | `sk-clearmaas-...` |
+| Base URL | `https://api.clearmaas.com/v1` |
+| Model ID | e.g., `anthropic/claude-sonnet-4.6` |
+| Max Input Tokens | 200000 |
+| Max Output Tokens | 8192 |
+
+Capabilities like tool calling and image input are auto-populated when selecting standard vendors.
+
+## Model format
+
+When specifying the model ID, use ClearMaas's `provider/model-name` format:
+
+| Model ID | Description |
+|---|---|
+| `anthropic/claude-sonnet-4.6` | Claude Sonnet 4.6 |
+| `anthropic/claude-opus-4.8` | Claude Opus 4.8 |
+| `openai/gpt-4o-mini` | GPT-4o Mini |
+| `google/gemini-2.5-pro` | Gemini 2.5 Pro |
+| `deepseek/deepseek-chat` | DeepSeek Chat |
+| `grok/grok-4-fast-reasoning` | Grok 4 Fast Reasoning |
+
+## Ollama and local models
+
+WorkBuddy also supports local models via Ollama. If you have both Ollama and ClearMaas configured, WorkBuddy can route between them:
+
+- Ollama: `http://localhost:11434/v1/chat/completions`
+- ClearMaas: `https://api.clearmaas.com/v1/chat/completions`
+
+## Custom protocol for gateways
+
+If your ClearMaas URL uses non-standard paths, enable **Custom Protocol** in the advanced settings to skip path validation.
+
+## Verification
+
+1. After adding ClearMaas, select the model from the model picker
+2. Ask a coding question or run a task
+3. Check your ClearMaas dashboard to confirm the request was routed
+
+## See also
+
+- [API key setup](/getting-started/get-api-key)
+- [Model reference](/getting-started/models)
+- [CodeBuddy docs](https://www.codebuddy.ai/docs)

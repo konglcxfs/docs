@@ -143,6 +143,25 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Integrations",
+        "groups": [
+          {
+            "group": "AI Agents",
+            "pages": [
+              "integrations/ai-agents",
+              "integrations/claude-code",
+              "integrations/codex-cli",
+              "integrations/opencode",
+              "integrations/hermes-agent",
+              "integrations/zed",
+              "integrations/trae-ide",
+              "integrations/workbuddy",
+              "integrations/openclaw"
+            ]
+          }
+        ]
       }
     ]
   },

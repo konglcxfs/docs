@@ -1,0 +1,112 @@
+---
+title: "Claude Code"
+description: "Connect Anthropic's official agentic coding CLI to ClearMaas with 2 environment variables."
+icon: "terminal"
+---
+
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) is Anthropic's official agentic coding tool that lives in your terminal. Connect it to ClearMaas to access the full Claude model family plus any other provider through the OpenAI-compatible path.
+
+## Prerequisites
+
+- Claude Code installed (`npm install -g @anthropic-ai/claude-code` or via [installer](https://docs.anthropic.com/en/docs/claude-code/getting-started))
+- A ClearMaas API key starting with `sk-clearmaas-`
+
+## Setup
+
+Set two environment variables before launching Claude Code:
+
+```bash
+export ANTHROPIC_API_KEY="sk-clearmaas-..."
+export ANTHROPIC_BASE_URL="https://api.clearmaas.com"
+claude
+```
+
+The Anthropic SDK that Claude Code uses appends `/v1/messages` itself, so the base URL must be the **bare host — no `/v1` suffix**.
+
+## Persistent configuration
+
+Rather than exporting env vars each time, add them to your shell profile:
+
+```bash
+# ~/.bashrc or ~/.zshrc
+export ANTHROPIC_API_KEY="sk-clearmaas-..."
+export ANTHROPIC_BASE_URL="https://api.clearmaas.com"
+```
+
+Or configure them in Claude Code's `settings.json` under the `env` key:
+
+```json
+{
+  "env": {
+    "ANTHROPIC_API_KEY": "sk-clearmaas-...",
+    "ANTHROPIC_BASE_URL": "https://api.clearmaas.com"
+  }
+}
+```
+
+Settings file locations (in order of precedence):
+
+- `.claude/settings.json` — project-scoped
+- `~/.claude/settings.json` — user-scoped
+
+## Choosing a model
+
+By default Claude Code uses `claude-sonnet-4-7-latest`. Override the model in `settings.json`:
+
+```json
+{
+  "claude": {
+    "model": "anthropic/claude-opus-4.8"
+  }
+}
+```
+
+Any model with the `anthropic/` prefix routes through ClearMaas's Anthropic-compatible path. To use models from other providers (GPT, Grok, DeepSeek, etc.), Claude Code can route them via ClearMaas's translation layer.
+
+## Model routing via ClearMaas
+
+ClearMaas translates OpenAI-style requests to upstream providers. To use a non-Anthropic model with Claude Code:
+
+```json
+{
+  "claude": {
+    "model": "openai/gpt-4o-mini"
+  }
+}
+```
+
+ClearMaas handles the protocol translation so Claude Code (which natively speaks Anthropic) can call any supported provider.
+
+## MCP and tool search
+
+When `ANTHROPIC_BASE_URL` points to a non-Anthropic host, Claude Code disables MCP tool search by default. If your proxy forwards `tool_reference` blocks correctly, re-enable it:
+
+```bash
+export ENABLE_TOOL_SEARCH=true
+```
+
+## Verification
+
+Run a quick test after setup:
+
+```bash
+claude
+# Type: "What model are you using?"
+```
+
+Claude Code should confirm it's connected through ClearMaas. Check your ClearMaas dashboard to see the request logged.
+
+## Troubleshooting
+
+| Issue | Solution |
+|---|---|
+| `ANTHROPIC_BASE_URL` ignored during setup | Upgrade Claude Code to the latest version; this was fixed after v2.0.74 |
+| MCP tools not working | Set `ENABLE_TOOL_SEARCH=true` or upgrade Claude Code |
+| Model not found | Ensure the model ID uses the correct prefix (`anthropic/`, `openai/`, etc.) |
+| Auth error | Verify your ClearMaas API key starts with `sk-clearmaas-` |
+
+## See also
+
+- [API key setup](/getting-started/get-api-key)
+- [Model reference](/getting-started/models)
+- [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code)

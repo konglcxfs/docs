@@ -1,0 +1,150 @@
+---
+title: "OpenClaw"
+description: "Connect OpenClaw's cross-platform AI assistant to ClearMaas via JSON config to access 570+ models."
+icon: "bot"
+---
+
+[OpenClaw](https://openclaw.dev) is a cross-platform AI assistant platform supporting multiple models and chat channels. Connect it to ClearMaas to unlock 570+ models including Claude, GPT, Grok, DeepSeek, Qwen, GLM, Kimi, and Doubao.
+
+## Prerequisites
+
+- OpenClaw installed ([openclaw.dev](https://openclaw.dev) or via GitHub)
+- A ClearMaas API key starting with `sk-clearmaas-`
+
+## Config file location
+
+OpenClaw's configuration lives at `~/.openclaw/openclaw.json` (legacy path: `~/.clawdbot/clawdbot.json`).
+
+## Adding ClearMaas as a provider
+
+Add a provider entry under `models.providers`:
+
+```json
+{
+  "models": {
+    "providers": {
+      "clearmaas": {
+        "baseUrl": "https://api.clearmaas.com/v1",
+        "apiKey": "sk-clearmaas-...",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "anthropic/claude-sonnet-4.6",
+            "name": "Claude Sonnet 4.6",
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "openai/gpt-4o-mini",
+            "name": "GPT-4o Mini",
+            "contextWindow": 128000,
+            "maxTokens": 16384
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+Key fields:
+
+| Field | Description |
+|---|---|
+| `baseUrl` | Must include `/v1` suffix for OpenAI-compatible APIs |
+| `api` | Set to `"openai-completions"` for OpenAI-compatible endpoints |
+| `models` | List of exact model IDs available through this provider |
+| `id` | The ClearMaas model ID (`provider/model-name`) |
+
+## Model ID format
+
+All ClearMaas models use the `provider/model-name` pattern:
+
+| Model ID | Description |
+|---|---|
+| `anthropic/claude-sonnet-4.6` | Claude Sonnet 4.6 |
+| `anthropic/claude-opus-4.8` | Claude Opus 4.8 |
+| `openai/gpt-4o-mini` | GPT-4o Mini |
+| `openai/gpt-4o` | GPT-4o |
+| `google/gemini-2.5-pro` | Gemini 2.5 Pro |
+| `deepseek/deepseek-chat` | DeepSeek Chat |
+| `grok/grok-4-fast-reasoning` | Grok 4 Fast |
+| `qwen/qwen3.6-plus` | Qwen 3.6 Plus |
+| `kimi/kimi-k2.6` | Kimi K2.6 |
+
+## Model allowlist requirement
+
+OpenClaw requires you to explicitly list allowed models under `models`. Requests for models not in this list return a "model not allowed" error. Add all models you intend to use.
+
+## Automated setup
+
+Instead of editing the config manually, you can ask OpenClaw to add the provider:
+
+1. Start OpenClaw
+2. Describe your provider in natural language:
+   > "Add ClearMaas as a provider with API key sk-clearmaas-... and models anthropic/claude-sonnet-4.6 and openai/gpt-4o-mini"
+
+## Switching providers
+
+After setup, select ClearMaas as your active provider:
+
+- In the OpenClaw UI, choose `clearmaas` from the provider selector
+- Or use a command: `/provider clearmaas`
+
+## Verification
+
+```bash
+openclaw models list
+```
+
+You should see the ClearMaas models listed under the `clearmaas` provider.
+
+Alternatively, send a message and check your ClearMaas dashboard to confirm the request was routed.
+
+## Full config example
+
+```json
+{
+  "models": {
+    "providers": {
+      "clearmaas": {
+        "baseUrl": "https://api.clearmaas.com/v1",
+        "apiKey": "sk-clearmaas-...",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "anthropic/claude-sonnet-4.6",
+            "name": "Claude Sonnet 4.6",
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "openai/gpt-4o",
+            "name": "GPT-4o",
+            "contextWindow": 128000,
+            "maxTokens": 16384
+          },
+          {
+            "id": "anthropic/claude-opus-4.8",
+            "name": "Claude Opus 4.8",
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "google/gemini-2.5-pro",
+            "name": "Gemini 2.5 Pro",
+            "contextWindow": 1048576,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+## See also
+
+- [API key setup](/getting-started/get-api-key)
+- [Model reference](/getting-started/models)
+- [OpenClaw docs](https://documentation.openclaw.ai)

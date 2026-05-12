@@ -1,0 +1,102 @@
+---
+title: "TRAE IDE"
+description: "Add ClearMaas as a custom Anthropic or OpenAI-compatible model provider in TRAE IDE."
+icon: "monitor"
+---
+
+[TRAE IDE](https://www.trae.ai) is an AI-powered code editor by ByteDance. It supports custom third-party model providers through its AI settings. Add ClearMaas to access 570+ models from a single configuration.
+
+## Prerequisites
+
+- TRAE IDE installed ([trae.ai](https://www.trae.ai))
+- A ClearMaas API key starting with `sk-clearmaas-`
+
+## Setup via AI Settings
+
+TRAE supports two protocol paths for custom providers:
+
+### OpenAI-compatible setup
+
+1. Open **Settings** → **AI** (or **Trae AI**)
+2. Navigate to **Models** or **Custom Providers**
+3. Add a new provider:
+
+| Field | Value |
+|---|---|
+| Provider | **OpenAI Compatible** |
+| API Key | `sk-clearmaas-...` |
+| Base URL | `https://api.clearmaas.com/v1` |
+
+### Anthropic-compatible setup
+
+| Field | Value |
+|---|---|
+| Provider | **Anthropic Compatible** |
+| API Key | `sk-clearmaas-...` |
+| Base URL | `https://api.clearmaas.com` |
+
+The Anthropic path uses the bare host URL — TRAE's SDK appends `/v1/messages` automatically.
+
+## Model naming format
+
+When selecting models in TRAE, use ClearMaas's `provider/model` format:
+
+| Provider | Model ID example |
+|---|---|
+| Anthropic models | `anthropic/claude-sonnet-4.6` |
+| OpenAI models | `openai/gpt-4o-mini` |
+| Google models | `google/gemini-2.5-pro` |
+| DeepSeek models | `deepseek/deepseek-chat` |
+| Grok models | `grok/grok-4-fast-reasoning` |
+| Qwen models | `qwen/qwen3.6-plus` |
+| Kimi models | `kimi/kimi-k2.6` |
+
+## Selecting a model
+
+After adding the provider:
+
+1. Open the AI chat or Builder panel
+2. Open the model selector
+3. Choose **ClearMaas** (or the provider name you configured)
+4. Pick any available model
+
+To set a default, look for a **Default Model** or **Preferred Model** option in **Settings > AI**.
+
+## Project-level configuration
+
+For team consistency, you can add model configuration to a project file (if TRAE supports project-scoped AI settings):
+
+```json
+// .trae/ai-settings.json (if supported)
+{
+  "provider": "openai-compatible",
+  "api_key": "sk-clearmaas-...",
+  "base_url": "https://api.clearmaas.com/v1",
+  "default_model": "anthropic/claude-sonnet-4.6"
+}
+```
+
+## Environment variable fallback
+
+If TRAE reads standard environment variables, you can set them before launching:
+
+```bash
+export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
+# or for Anthropic path:
+export ANTHROPIC_API_KEY="sk-clearmaas-..."
+export ANTHROPIC_BASE_URL="https://api.clearmaas.com"
+trae .
+```
+
+## Verification
+
+1. After adding ClearMaas as a provider, select a ClearMaas model
+2. Ask a question in the AI chat
+3. Check your ClearMaas dashboard to confirm the request was routed
+
+## See also
+
+- [API key setup](/getting-started/get-api-key)
+- [Model reference](/getting-started/models)
+- [TRAE IDE docs](https://trae.nitor.co.jp)

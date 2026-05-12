@@ -1,0 +1,123 @@
+---
+title: "Codex CLI"
+description: "Connect OpenAI's official coding agent to ClearMaas via a custom provider in config.toml."
+icon: "terminal"
+---
+
+[Codex CLI](https://github.com/openai/codex) is OpenAI's official command-line coding agent. Connect it to ClearMaas via a custom provider in `config.toml` or environment variables.
+
+## Prerequisites
+
+- Codex CLI installed (`npm install -g @openai/codex` or via [installer](https://github.com/openai/codex))
+- A ClearMaas API key starting with `sk-clearmaas-`
+
+## Quick setup via environment variables
+
+The fastest way to get started:
+
+```bash
+export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
+codex
+```
+
+(Older Codex versions may recognize `OPENAI_API_BASE` instead of `OPENAI_BASE_URL` — set whichever your version expects.)
+
+## Setup via config.toml
+
+For persistent configuration, create `~/.config/codex/config.toml`:
+
+```toml
+model_provider = "clearmaas"
+
+[model_providers.clearmaas]
+name = "ClearMaas"
+base_url = "https://api.clearmaas.com/v1"
+env_key = "OPENAI_API_KEY"
+```
+
+Then set the API key in your environment:
+
+```bash
+export OPENAI_API_KEY="sk-clearmaas-..."
+```
+
+## Adding a second provider (Anthropic)
+
+You can define multiple providers and switch between them:
+
+```toml
+model_provider = "clearmaas"
+
+[model_providers.clearmaas]
+name = "ClearMaas"
+base_url = "https://api.clearmaas.com/v1"
+env_key = "OPENAI_API_KEY"
+
+[model_providers.anthropic]
+name = "Anthropic Direct"
+base_url = "https://api.anthropic.com/v1"
+env_key = "ANTHROPIC_API_KEY"
+```
+
+Switch providers with the `-c` CLI flag:
+
+```bash
+codex -c model_provider='"anthropic"' "Explain this function"
+```
+
+## Choosing a model
+
+Set the default model in `config.toml`:
+
+```toml
+model = "anthropic/claude-sonnet-4.6"
+```
+
+Or override per-invocation:
+
+```bash
+codex -c model='"openai/gpt-4o-mini"' "Refactor this module"
+```
+
+Available prefixes for routing to different providers:
+
+| Prefix | Example model ID |
+|---|---|
+| `openai/` | `openai/gpt-4o-mini` |
+| `anthropic/` | `anthropic/claude-sonnet-4.6` |
+| `google/` | `google/gemini-2.5-pro` |
+| `deepseek/` | `deepseek/deepseek-chat` |
+| `grok/` | `grok/grok-4-fast-reasoning` |
+| `qwen/` | `qwen/qwen3.6-plus` |
+| `kimi/` | `kimi/kimi-k2.6` |
+
+## Adding custom headers
+
+If your ClearMaas setup requires additional headers:
+
+```toml
+[model_providers.clearmaas]
+name = "ClearMaas"
+base_url = "https://api.clearmaas.com/v1"
+env_key = "OPENAI_API_KEY"
+
+[model_providers.clearmaas.http_headers]
+X-Custom-Header = "value"
+```
+
+## Verification
+
+```bash
+export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
+codex "Hello, what model are you using?"
+```
+
+Check your ClearMaas dashboard to confirm the request was routed.
+
+## See also
+
+- [API key setup](/getting-started/get-api-key)
+- [Model reference](/getting-started/models)
+- [Codex CLI docs](https://developers.openai.com/codex)

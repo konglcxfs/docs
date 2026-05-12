@@ -1,0 +1,145 @@
+---
+title: "Hermes Agent"
+description: "Connect Nous Research's terminal AI assistant to ClearMaas via YAML config or environment variables."
+icon: "terminal"
+---
+
+[Hermes Agent](https://hermes-agent.nousresearch.com) is Nous Research's terminal AI assistant with a unified TUI interface. Connect it to ClearMaas via its YAML config file or environment variables to access OpenAI and Anthropic models through a single endpoint.
+
+## Prerequisites
+
+- Hermes Agent installed (`pip install hermes-agent` or via [installer](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart))
+- A ClearMaas API key starting with `sk-clearmaas-`
+
+## Config file locations
+
+All settings live in `~/.hermes/`:
+
+| File | Purpose |
+|---|---|
+| `config.yaml` | Model, terminal, agent, and provider settings |
+| `.env` | API keys and secrets |
+| `auth.json` | OAuth provider credentials |
+
+## Setup via config.yaml
+
+Add to `~/.hermes/config.yaml`:
+
+```yaml
+model:
+  default: "anthropic/claude-sonnet-4.6"
+  provider: "custom"
+  base_url: "https://api.clearmaas.com/v1"
+
+terminal:
+  backend: "local"
+  timeout: 180
+
+agent:
+  max_turns: 90
+```
+
+Then add your API key to `~/.hermes/.env`:
+
+```bash
+OPENAI_API_KEY="sk-clearmaas-..."
+```
+
+## Provider options
+
+The `provider` field accepts these values:
+
+| Provider | Description |
+|---|---|
+| `auto` | Auto-detect (requires direct provider credentials) |
+| `custom` | Any OpenAI-compatible endpoint (set `base_url`) |
+| `openrouter` | OpenRouter multi-provider routing |
+| `lmstudio` | LM Studio local server |
+| `ollama`, `vllm`, `llamacpp` | Aliases for `custom` |
+
+Setting `provider: "custom"` with a `base_url` routes all requests through ClearMaas.
+
+## Using the Anthropic protocol
+
+For native Anthropic requests (bypassing translation), use the bare host URL:
+
+```yaml
+model:
+  default: "anthropic/claude-opus-4.6"
+  provider: "custom"
+  base_url: "https://api.clearmaas.com"
+```
+
+The key difference: ClearMaas's Anthropic path (`https://api.clearmaas.com`) expects the SDK to append `/v1/messages`, while the OpenAI-compatible path (`https://api.clearmaas.com/v1`) is the complete endpoint.
+
+## Interactive setup
+
+If you prefer a guided setup:
+
+```bash
+hermes model
+```
+
+This interactive command walks through provider selection. Choose **custom** and enter:
+
+- Base URL: `https://api.clearmaas.com/v1` (OpenAI-compatible) or `https://api.clearmaas.com` (Anthropic-compatible)
+- API Key: `sk-clearmaas-...`
+
+## Environment variable override
+
+Override settings at runtime:
+
+```bash
+export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
+hermes
+```
+
+Environment variables take highest precedence, followed by CLI arguments, `config.yaml`, then `.env`.
+
+## Choosing models
+
+Set the default model in `config.yaml`:
+
+```yaml
+model:
+  default: "openai/gpt-4o-mini"
+  provider: "custom"
+  base_url: "https://api.clearmaas.com/v1"
+```
+
+Use any ClearMaas model prefix:
+
+| Prefix | Example |
+|---|---|
+| `openai/` | `openai/gpt-4o` |
+| `anthropic/` | `anthropic/claude-sonnet-4.6` |
+| `google/` | `google/gemini-2.5-pro` |
+| `deepseek/` | `deepseek/deepseek-chat` |
+| `grok/` | `grok/grok-4-fast-reasoning` |
+| `qwen/` | `qwen/qwen3.6-plus` |
+
+## Config migration
+
+After updating Hermes Agent, migrate your config to include new options:
+
+```bash
+hermes config migrate
+```
+
+## Verification
+
+```bash
+export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
+hermes
+# Type a question and verify the response
+```
+
+Check your ClearMaas dashboard to confirm requests are routed.
+
+## See also
+
+- [API key setup](/getting-started/get-api-key)
+- [Model reference](/getting-started/models)
+- [Hermes Agent docs](https://hermes-agent.nousresearch.com/docs)
