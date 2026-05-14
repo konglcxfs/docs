@@ -45,7 +45,7 @@ paths:
               $ref: '#/components/schemas/VideoGenerationRequest'
       responses:
         '200':
-          description: Task accepted (async â€” poll /v1/video/generations/{task_id})
+          description: Task accepted (async â€?poll /v1/video/generations/{task_id})
           content:
             application/json:
               schema:
@@ -109,6 +109,6 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: API key (sk-clearmaas-...)
-      description: Pass `Authorization: Bearer sk-clearmaas-...` header.
+      bearerFormat: API key (sk-...)
+      description: Pass `Authorization: Bearer sk-...` header.
 ````

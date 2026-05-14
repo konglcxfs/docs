@@ -7,10 +7,10 @@ icon: "image"
 ClearMaas exposes image generation through two paths, depending on
 which model you pick:
 
-1. **`/v1/images/generations`** â€” OpenAI image API shape. Best for
+1. **`/v1/images/generations`** â€?OpenAI image API shape. Best for
    dedicated image-generation models (DALL-E replacement family,
    Imagen, Grok Imagine).
-2. **`/v1/chat/completions`** â€” chat-style image generation. Best when
+2. **`/v1/chat/completions`** â€?chat-style image generation. Best when
    you want a model that returns text **and** an image in one turn
    (Gemini's nano-banana / "imagine" family).
 
@@ -28,7 +28,7 @@ families that serve this endpoint:
 
 ```bash
 curl https://api.clearmaas.com/v1/images/generations \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "openai/gpt-image-1",
@@ -53,7 +53,7 @@ the response:
 ```python
 from openai import OpenAI
 
-client = OpenAI(base_url="https://api.clearmaas.com/v1", api_key="sk-clearmaas-...")
+client = OpenAI(base_url="https://api.clearmaas.com/v1", api_key="sk-...")
 
 resp = client.chat.completions.create(
     model="google/gemini-2.5-flash-image",
@@ -64,10 +64,10 @@ resp = client.chat.completions.create(
 # inline_data block, depending on the SDK's serialization.
 ```
 
-These models are not callable via `/v1/images/generations` â€” use
+These models are not callable via `/v1/images/generations` â€?use
 chat completions for them.
 
 ## See also
 
-* [API Reference / Images](/api-reference/images/create-an-image) â€” full schema with try-it
+* [API Reference / Images](/api-reference/images/create-an-image) â€?full schema with try-it
 * [Operations / Billing & Usage](/operations/billing-and-usage)

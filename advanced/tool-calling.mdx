@@ -12,7 +12,7 @@ shape.
 
 ```python
 from openai import OpenAI
-client = OpenAI(base_url="https://api.clearmaas.com/v1", api_key="sk-clearmaas-...")
+client = OpenAI(base_url="https://api.clearmaas.com/v1", api_key="sk-...")
 
 tools = [{
     "type": "function",
@@ -36,10 +36,10 @@ print(resp.choices[0].message.tool_calls)
 
 ## Cross-provider behavior
 
-Same client code works across every chat-capable provider â€” ClearMaas
+Same client code works across every chat-capable provider â€?ClearMaas
 adapts your OpenAI-style `tools` to each upstream's native shape:
 
-* **OpenAI / Grok / DeepSeek**: native target â€” `tools` keeps the
+* **OpenAI / Grok / DeepSeek**: native target â€?`tools` keeps the
   OpenAI shape on the wire
 * **Anthropic**: OpenAI `tools` is mapped to Anthropic `tools` with
   `input_schema`, preserving JSON Schema `properties` and `required`
@@ -59,7 +59,7 @@ tools instead of custom function declarations:
 | `codeExecution` | Gemini built-in code execution |
 | `urlContext` | Gemini built-in URL-context tool |
 
-Functions with one of these names don't need `parameters` â€” pass
+Functions with one of these names don't need `parameters` â€?pass
 `{type: "function", function: {name: "googleSearch"}}` and Gemini
 takes it from there. Pick a different name for your own custom tools
 so you don't collide with these built-ins.

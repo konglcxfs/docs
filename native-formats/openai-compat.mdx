@@ -13,7 +13,7 @@ Anthropic and Gemini models via translation.
 
 ```bash
 curl https://api.clearmaas.com/v1/chat/completions \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "openai/gpt-4o-mini",
@@ -25,7 +25,7 @@ curl https://api.clearmaas.com/v1/chat/completions \
 
 ```bash
 curl https://api.clearmaas.com/v1/responses \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "openai/gpt-5",
@@ -33,14 +33,14 @@ curl https://api.clearmaas.com/v1/responses \
   }'
 ```
 
-OpenAI models **and xAI Grok models** are supported here â€” xAI's
+OpenAI models **and xAI Grok models** are supported here â€?xAI's
 Agent Tools API uses the same shape. Anthropic and Gemini models
 return `not_implemented` because their native shapes differ; call
 `/v1/messages` or `/v1beta/.../generateContent` for those.
 
 ## See also
 
-* [API Reference / Chat](/api-reference/chat/create-a-chat-completion) â€” full schema with try-it
-* [Advanced / Streaming](/advanced/streaming) â€” SSE shape
-* [Native Formats / Anthropic](/native-formats/anthropic) â€” Anthropic native protocol
-* [Native Formats / Gemini](/native-formats/gemini) â€” Gemini native protocol
+* [API Reference / Chat](/api-reference/chat/create-a-chat-completion) â€?full schema with try-it
+* [Advanced / Streaming](/advanced/streaming) â€?SSE shape
+* [Native Formats / Anthropic](/native-formats/anthropic) â€?Anthropic native protocol
+* [Native Formats / Gemini](/native-formats/gemini) â€?Gemini native protocol

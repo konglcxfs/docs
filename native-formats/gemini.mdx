@@ -6,13 +6,13 @@ icon: "shield"
 
 ClearMaas's `/v1beta/` surface is a direct passthrough to Google's
 Gemini API. Pick this path when you want Gemini features that don't
-fit OpenAI shape â€” inline audio/video data, native built-in tools
+fit OpenAI shape â€?inline audio/video data, native built-in tools
 like `googleSearch`, fully-formed `generationConfig.thinkingConfig`,
 or simply because you're already on the `google-genai` SDK.
 
 For everyday chat the OpenAI-compatible path
 (`POST /v1/chat/completions` with `model=google/...`) is usually
-simpler and works across providers â€” see
+simpler and works across providers â€?see
 [Compatibility / Google GenAI SDK](/compatibility/google-genai-sdk)
 for SDK setup.
 
@@ -37,9 +37,9 @@ routed through this surface today.
 The gateway accepts three header forms on this surface, so the
 official `google-genai` SDK works without header hacks:
 
-* `Authorization: Bearer sk-clearmaas-...`
-* `x-goog-api-key: sk-clearmaas-...`
-* `?key=sk-clearmaas-...` (query string, last resort for tools that don't
+* `Authorization: Bearer sk-...`
+* `x-goog-api-key: sk-...`
+* `?key=sk-...` (query string, last resort for tools that don't
   support setting headers)
 
 ## Examples
@@ -47,7 +47,7 @@ official `google-genai` SDK works without header hacks:
 <CodeGroup>
   ```bash One-shot
   curl "https://api.clearmaas.com/v1beta/models/google/gemini-2.5-flash:generateContent" \
-    -H "Authorization: Bearer sk-clearmaas-..." \
+    -H "Authorization: Bearer sk-..." \
     -H "Content-Type: application/json" \
     -d '{
       "contents": [{"role": "user", "parts": [{"text": "Write a one-sentence haiku about the sea."}]}]
@@ -56,7 +56,7 @@ official `google-genai` SDK works without header hacks:
 
   ```bash Stream
   curl -N "https://api.clearmaas.com/v1beta/models/google/gemini-2.5-flash:streamGenerateContent" \
-    -H "Authorization: Bearer sk-clearmaas-..." \
+    -H "Authorization: Bearer sk-..." \
     -H "Content-Type: application/json" \
     -d '{
       "contents": [{"role": "user", "parts": [{"text": "Tell me a long story."}]}]
@@ -65,7 +65,7 @@ official `google-genai` SDK works without header hacks:
 
   ```bash Web grounding
   curl "https://api.clearmaas.com/v1beta/models/google/gemini-2.5-flash:generateContent" \
-    -H "Authorization: Bearer sk-clearmaas-..." \
+    -H "Authorization: Bearer sk-..." \
     -H "Content-Type: application/json" \
     -d '{
       "contents": [{"role":"user","parts":[{"text":"What changed in Gemini pricing this week?"}]}],
@@ -75,7 +75,7 @@ official `google-genai` SDK works without header hacks:
 
   ```bash Image generation
   curl "https://api.clearmaas.com/v1beta/models/google/gemini-2.5-flash-image:generateContent" \
-    -H "Authorization: Bearer sk-clearmaas-..." \
+    -H "Authorization: Bearer sk-..." \
     -H "Content-Type: application/json" \
     -d '{
       "contents": [{"role":"user","parts":[{"text":"A watercolour of a foggy harbor at dawn."}]}],
@@ -86,7 +86,7 @@ official `google-genai` SDK works without header hacks:
 
 ## Built-in tools
 
-Gemini's three native built-in tools work as documented by Google â€”
+Gemini's three native built-in tools work as documented by Google â€?
 pass them in the request body's `tools` array:
 
 | Tool | Effect |
@@ -96,11 +96,11 @@ pass them in the request body's `tools` array:
 | `{"urlContext": {}}` | Lets the model fetch and summarize URLs you mention. |
 
 The same three tools are reachable from OpenAI-shape Chat Completions
-via reserved function names â€” see
+via reserved function names â€?see
 [Advanced / Web search](/advanced/web-search) and
 [Advanced / Tool calling](/advanced/tool-calling).
 
 ## See also
 
-* [Compatibility / Google GenAI SDK](/compatibility/google-genai-sdk) â€” pointing the SDK at ClearMaas
-* [API Reference / Gemini Native](/api-reference/gemini-native/gemini-native-generate) â€” full request / response schema with try-it
+* [Compatibility / Google GenAI SDK](/compatibility/google-genai-sdk) â€?pointing the SDK at ClearMaas
+* [API Reference / Gemini Native](/api-reference/gemini-native/gemini-native-generate) â€?full request / response schema with try-it

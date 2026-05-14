@@ -9,7 +9,7 @@ icon: "briefcase"
 ## Prerequisites
 
 - WorkBuddy / CodeBuddy installed ([codebuddy.cn](https://codebuddy.cn))
-- A ClearMaas API key starting with `sk-clearmaas-`
+- A ClearMaas API key starting with `sk-`
 
 ## Setup via models.json
 
@@ -29,7 +29,7 @@ Project-level settings override user-level for matching model IDs.
       "id": "clearmaas-claude-sonnet",
       "name": "Claude Sonnet via ClearMaas",
       "vendor": "OpenAI",
-      "apiKey": "sk-clearmaas-...",
+      "apiKey": "sk-...",
       "maxInputTokens": 200000,
       "maxOutputTokens": 8192,
       "url": "https://api.clearmaas.com/v1/chat/completions",
@@ -40,7 +40,7 @@ Project-level settings override user-level for matching model IDs.
       "id": "clearmaas-gpt-4o-mini",
       "name": "GPT-4o Mini via ClearMaas",
       "vendor": "OpenAI",
-      "apiKey": "sk-clearmaas-...",
+      "apiKey": "sk-...",
       "maxInputTokens": 128000,
       "maxOutputTokens": 16384,
       "url": "https://api.clearmaas.com/v1/chat/completions",
@@ -56,7 +56,7 @@ Key fields:
 | Field | Description |
 |---|---|
 | `url` | Full path to the chat completions endpoint (must include `/chat/completions`) |
-| `vendor` | Must be `"OpenAI"` â€” only OpenAI interface format is supported |
+| `vendor` | Must be `"OpenAI"` â€?only OpenAI interface format is supported |
 | `supportsToolCall` | Enable tool/function calling support |
 | `supportsImages` | Enable image input (vision) |
 
@@ -72,7 +72,7 @@ Since 2025, WorkBuddy supports graphical model configuration:
 | Field | Value |
 |---|---|
 | Provider | **OpenAI Compatible** |
-| API Key | `sk-clearmaas-...` |
+| API Key | `sk-...` |
 | Base URL | `https://api.clearmaas.com/v1` |
 | Model ID | e.g., `anthropic/claude-sonnet-4.6` |
 | Max Input Tokens | 200000 |

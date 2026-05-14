@@ -9,19 +9,19 @@ icon: "terminal"
 ## Prerequisites
 
 - Claude Code installed (`npm install -g @anthropic-ai/claude-code` or via [installer](https://docs.anthropic.com/en/docs/claude-code/getting-started))
-- A ClearMaas API key starting with `sk-clearmaas-`
+- A ClearMaas API key starting with `sk-`
 
 ## Setup
 
 Set two environment variables before launching Claude Code:
 
 ```bash
-export ANTHROPIC_API_KEY="sk-clearmaas-..."
+export ANTHROPIC_API_KEY="sk-..."
 export ANTHROPIC_BASE_URL="https://api.clearmaas.com"
 claude
 ```
 
-The Anthropic SDK that Claude Code uses appends `/v1/messages` itself, so the base URL must be the **bare host â€” no `/v1` suffix**.
+The Anthropic SDK that Claude Code uses appends `/v1/messages` itself, so the base URL must be the **bare host â€?no `/v1` suffix**.
 
 ## Persistent configuration
 
@@ -29,7 +29,7 @@ Rather than exporting env vars each time, add them to your shell profile:
 
 ```bash
 # ~/.bashrc or ~/.zshrc
-export ANTHROPIC_API_KEY="sk-clearmaas-..."
+export ANTHROPIC_API_KEY="sk-..."
 export ANTHROPIC_BASE_URL="https://api.clearmaas.com"
 ```
 
@@ -38,7 +38,7 @@ Or configure them in Claude Code's `settings.json` under the `env` key:
 ```json
 {
   "env": {
-    "ANTHROPIC_API_KEY": "sk-clearmaas-...",
+    "ANTHROPIC_API_KEY": "sk-...",
     "ANTHROPIC_BASE_URL": "https://api.clearmaas.com"
   }
 }
@@ -46,8 +46,8 @@ Or configure them in Claude Code's `settings.json` under the `env` key:
 
 Settings file locations (in order of precedence):
 
-- `.claude/settings.json` â€” project-scoped
-- `~/.claude/settings.json` â€” user-scoped
+- `.claude/settings.json` â€?project-scoped
+- `~/.claude/settings.json` â€?user-scoped
 
 ## Choosing a model
 
@@ -103,7 +103,7 @@ Claude Code should confirm it's connected through ClearMaas. Check your ClearMaa
 | `ANTHROPIC_BASE_URL` ignored during setup | Upgrade Claude Code to the latest version; this was fixed after v2.0.74 |
 | MCP tools not working | Set `ENABLE_TOOL_SEARCH=true` or upgrade Claude Code |
 | Model not found | Ensure the model ID uses the correct prefix (`anthropic/`, `openai/`, etc.) |
-| Auth error | Verify your ClearMaas API key starts with `sk-clearmaas-` |
+| Auth error | Verify your ClearMaas API key starts with `sk-` |
 
 ## See also
 

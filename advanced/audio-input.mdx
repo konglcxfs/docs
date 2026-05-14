@@ -10,11 +10,11 @@ Audio input is supported by Gemini multimodal models. Two paths:
 
 The gateway translates the OpenAI `input_audio` content part to
 Gemini's `inline_data` automatically. The `format` field maps to
-the right MIME type (`mp3` â†’ `audio/mp3`, `wav` â†’ `audio/wav`, etc.).
+the right MIME type (`mp3` â†?`audio/mp3`, `wav` â†?`audio/wav`, etc.).
 
 ```bash
 curl https://api.clearmaas.com/v1/chat/completions \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "google/gemini-2.5-flash",
@@ -31,11 +31,11 @@ curl https://api.clearmaas.com/v1/chat/completions \
 ## Path 2: Native `/v1beta/` with `inline_data`
 
 If you're already on Gemini's native protocol, pass `inline_data`
-directly â€” no translation involved.
+directly â€?no translation involved.
 
 ```bash
 curl "https://api.clearmaas.com/v1beta/models/google/gemini-2.5-flash:generateContent" \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [{
@@ -50,7 +50,7 @@ curl "https://api.clearmaas.com/v1beta/models/google/gemini-2.5-flash:generateCo
 
 ## Supported model families
 
-Gemini multimodal models accept inline audio â€” for example
+Gemini multimodal models accept inline audio â€?for example
 `google/gemini-2.5-flash` and the Gemini 3.x line. Behavior matches
 Google's published Gemini API exactly.
 

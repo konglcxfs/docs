@@ -9,19 +9,19 @@ icon: "terminal"
 ## Prerequisites
 
 - Codex CLI installed (`npm install -g @openai/codex` or via [installer](https://github.com/openai/codex))
-- A ClearMaas API key starting with `sk-clearmaas-`
+- A ClearMaas API key starting with `sk-`
 
 ## Quick setup via environment variables
 
 The fastest way to get started:
 
 ```bash
-export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_API_KEY="sk-..."
 export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
 codex
 ```
 
-(Older Codex versions may recognize `OPENAI_API_BASE` instead of `OPENAI_BASE_URL` â€” set whichever your version expects.)
+(Older Codex versions may recognize `OPENAI_API_BASE` instead of `OPENAI_BASE_URL` â€?set whichever your version expects.)
 
 ## Setup via config.toml
 
@@ -39,7 +39,7 @@ env_key = "OPENAI_API_KEY"
 Then set the API key in your environment:
 
 ```bash
-export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_API_KEY="sk-..."
 ```
 
 ## Adding a second provider (Anthropic)
@@ -109,7 +109,7 @@ X-Custom-Header = "value"
 ## Verification
 
 ```bash
-export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_API_KEY="sk-..."
 export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
 codex "Hello, what model are you using?"
 ```

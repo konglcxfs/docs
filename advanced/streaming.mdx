@@ -1,6 +1,6 @@
 ---
 title: "Streaming"
-description: "Server-Sent Events for incremental output â€” Chat Completions, Responses, and Anthropic Messages."
+description: "Server-Sent Events for incremental output â€?Chat Completions, Responses, and Anthropic Messages."
 icon: "zap"
 ---
 
@@ -13,7 +13,7 @@ single network round-trip.
 <CodeGroup>
   ```bash cURL
   curl -N https://api.clearmaas.com/v1/chat/completions \
-    -H "Authorization: Bearer sk-clearmaas-..." \
+    -H "Authorization: Bearer sk-..." \
     -H "Content-Type: application/json" \
     -d '{
       "model": "openai/gpt-4o-mini",
@@ -25,7 +25,7 @@ single network round-trip.
   ```python Python
   from openai import OpenAI
 
-  client = OpenAI(base_url="https://api.clearmaas.com/v1", api_key="sk-clearmaas-...")
+  client = OpenAI(base_url="https://api.clearmaas.com/v1", api_key="sk-...")
 
   stream = client.chat.completions.create(
       model="openai/gpt-4o-mini",
@@ -43,7 +43,7 @@ single network round-trip.
 
   const openai = new OpenAI({
     baseURL: "https://api.clearmaas.com/v1",
-    apiKey: "sk-clearmaas-...",
+    apiKey: "sk-...",
   });
 
   const stream = await openai.chat.completions.create({
@@ -60,7 +60,7 @@ single network round-trip.
 Each line is `data: {...}`. Stream ends with `data: [DONE]`.
 
 To get the final `usage` object inside the stream, pass
-`stream_options: { include_usage: true }` â€” the chunk just before
+`stream_options: { include_usage: true }` â€?the chunk just before
 `[DONE]` will include token counts.
 
 ## Anthropic Messages
@@ -83,7 +83,7 @@ Each event is followed by a `data: {...}` JSON line.
 <CodeGroup>
   ```bash cURL
   curl -N https://api.clearmaas.com/v1/messages \
-    -H "Authorization: Bearer sk-clearmaas-..." \
+    -H "Authorization: Bearer sk-..." \
     -H "Content-Type: application/json" \
     -H "anthropic-version: 2023-06-01" \
     -d '{
@@ -97,7 +97,7 @@ Each event is followed by a `data: {...}` JSON line.
   ```python Python
   from anthropic import Anthropic
 
-  client = Anthropic(base_url="https://api.clearmaas.com", api_key="sk-clearmaas-...")
+  client = Anthropic(base_url="https://api.clearmaas.com", api_key="sk-...")
 
   with client.messages.stream(
       model="anthropic/claude-sonnet-4.6",
@@ -119,7 +119,7 @@ in-band error shapes.
 ## Streaming and fallback
 
 Once any byte of the response has been sent to the client, ClearMaas
-can no longer fall back to the next chain entry â€” see the streaming
+can no longer fall back to the next chain entry â€?see the streaming
 caveat in [Model Fallbacks](/routing/model-fallbacks).
 
 ## Next steps

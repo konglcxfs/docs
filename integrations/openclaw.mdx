@@ -9,7 +9,7 @@ icon: "bot"
 ## Prerequisites
 
 - OpenClaw installed ([openclaw.dev](https://openclaw.dev) or via GitHub)
-- A ClearMaas API key starting with `sk-clearmaas-`
+- A ClearMaas API key starting with `sk-`
 
 ## Config file location
 
@@ -25,7 +25,7 @@ Add a provider entry under `models.providers`:
     "providers": {
       "clearmaas": {
         "baseUrl": "https://api.clearmaas.com/v1",
-        "apiKey": "sk-clearmaas-...",
+        "apiKey": "sk-...",
         "api": "openai-completions",
         "models": [
           {
@@ -82,7 +82,7 @@ Instead of editing the config manually, you can ask OpenClaw to add the provider
 
 1. Start OpenClaw
 2. Describe your provider in natural language:
-   > "Add ClearMaas as a provider with API key sk-clearmaas-... and models anthropic/claude-sonnet-4.6 and openai/gpt-4o-mini"
+   > "Add ClearMaas as a provider with API key sk-... and models anthropic/claude-sonnet-4.6 and openai/gpt-4o-mini"
 
 ## Switching providers
 
@@ -109,7 +109,7 @@ Alternatively, send a message and check your ClearMaas dashboard to confirm the 
     "providers": {
       "clearmaas": {
         "baseUrl": "https://api.clearmaas.com/v1",
-        "apiKey": "sk-clearmaas-...",
+        "apiKey": "sk-...",
         "api": "openai-completions",
         "models": [
           {

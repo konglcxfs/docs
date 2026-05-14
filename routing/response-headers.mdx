@@ -39,7 +39,7 @@ console.log(response.headers.get("x-clearmaas-resolved-model"));
 
   ```bash cURL
 curl -v https://api.clearmaas.com/v1/chat/completions \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{"model":"clearmaas/auto","messages":[...]}'
 # -v dumps response headers to stderr; look for X-Clear-* lines

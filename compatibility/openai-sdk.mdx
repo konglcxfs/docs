@@ -6,7 +6,7 @@ icon: "film"
 
 ClearMaas exposes a first-class OpenAI surface. Point your existing
 OpenAI SDK at ClearMaas's base URL and your code keeps working the
-way your SDK expects â€” streaming, tool calling, structured outputs
+way your SDK expects â€?streaming, tool calling, structured outputs
 (`json_object` and `json_schema`), and vision are all supported. When
 you target a model from a different provider, ClearMaas's translation
 layer adapts request and response to that provider's native shape so
@@ -19,7 +19,7 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="https://api.clearmaas.com/v1",
-    api_key="sk-clearmaas-...",
+    api_key="sk-...",
 )
 ```
 
@@ -30,7 +30,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({
   baseURL: "https://api.clearmaas.com/v1",
-  apiKey: "sk-clearmaas-...",
+  apiKey: "sk-...",
 });
 ```
 
@@ -41,7 +41,7 @@ from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
     base_url="https://api.clearmaas.com/v1",
-    api_key="sk-clearmaas-...",
+    api_key="sk-...",
 )
 ```
 
@@ -51,14 +51,14 @@ The OpenAI SDK reads `OPENAI_API_KEY` and `OPENAI_BASE_URL` by default.
 Set them once and the SDK picks them up without per-call config:
 
 ```bash
-export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_API_KEY="sk-..."
 export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
 ```
 
 ## What changes in your code
 
 Only the base URL and the API key. Request parameters, response shape,
-streaming protocol, error handling â€” all unchanged. Model names are
+streaming protocol, error handling â€?all unchanged. Model names are
 **provider-prefixed** (`openai/gpt-4o-mini`, `anthropic/claude-sonnet-4.6`,
 `google/gemini-2.5-pro`, `deepseek/deepseek-chat`,
 `grok/grok-4-fast-reasoning`, `qwen/qwen3.6-plus`,

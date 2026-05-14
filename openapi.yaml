@@ -4,9 +4,9 @@ info:
   version: '2026.04'
   description: |
     ClearMaas is an OpenAI-compatible API gateway that routes your requests
-    directly to upstream providers â€” OpenAI, Anthropic, Google Gemini,
+    directly to upstream providers â€?OpenAI, Anthropic, Google Gemini,
     DeepSeek, xAI Grok, Alibaba Qwen, Moonshot Kimi, MiniMax, and Kling
-    (video) â€” at provider cost price. You pay what the provider charges.
+    (video) â€?at provider cost price. You pay what the provider charges.
     We don't add per-token markup.
 
     This reference documents every endpoint ClearMaas exposes. If you're
@@ -39,7 +39,7 @@ tags:
   description: |
     OpenAI Responses API. Supported with OpenAI models and xAI Grok
     (xAI's Agent Tools API uses the same shape). Anthropic and Gemini
-    targets return `not_implemented` â€” call `/v1/messages` or
+    targets return `not_implemented` â€?call `/v1/messages` or
     `/v1beta/.../generateContent` for those.
 - name: Messages
   description: Anthropic-compatible messages endpoint at POST /v1/messages.
@@ -57,13 +57,13 @@ tags:
 - name: Video
   description: |
     Async video generation via /v1/video/generations. Submit a task,
-    poll the task ID. Currently routed to Kling â€” supports text-to-video,
+    poll the task ID. Currently routed to Kling â€?supports text-to-video,
     image-to-video, and Omni-Video (multi-source / multi-shot) on a
     single endpoint, switched by which `metadata` fields you supply.
 - name: Gemini Native
   description: |
     Gemini's native API surface at /v1beta/models/{model}:{action}.
-    Use this for any Gemini capability â€” chat, multimodal input
+    Use this for any Gemini capability â€?chat, multimodal input
     (image/audio inline_data), function calling, native built-in
     tools (`googleSearch`, `codeExecution`, `urlContext`), TTS preview
     models, image-output models, and `thinkingConfig`-controlled
@@ -80,7 +80,7 @@ paths:
         - Streaming (`stream: true`, SSE)
         - Tool / function calling (`tools`, `tool_choice`)
         - Structured outputs (`response_format`)
-        - **Multimodal** â€” send images via `content: [{type: "image_url", ...}]`
+        - **Multimodal** â€?send images via `content: [{type: "image_url", ...}]`
           (see `ChatMessageContentPart` schema below). `https://` URLs
           work against every vision-capable model; ClearMaas's
           translation layer adapts the content part for each upstream
@@ -262,7 +262,7 @@ paths:
               $ref: '#/components/schemas/VideoGenerationRequest'
       responses:
         '200':
-          description: Task accepted (async â€” poll /v1/video/generations/{task_id})
+          description: Task accepted (async â€?poll /v1/video/generations/{task_id})
           content:
             application/json:
               schema:
@@ -274,7 +274,7 @@ paths:
       summary: Fetch video task status
       description: |
         When `status` is `SUCCESS`, `data.result_url` carries the MP4
-        (upstream URL, short TTL â€” download promptly).
+        (upstream URL, short TTL â€?download promptly).
       operationId: fetchVideoTask
       parameters:
       - name: task_id
@@ -296,11 +296,11 @@ paths:
       summary: Create a response
       description: |
         OpenAI Responses API. Supported on **OpenAI models** and
-        **xAI Grok models** â€” xAI's Agent Tools API uses the same
+        **xAI Grok models** â€?xAI's Agent Tools API uses the same
         shape, so any Grok model accepts `tools: [{"type": "web_search"}]`
         / `x_search` / `code_interpreter` here. Anthropic and Gemini
         targets return `not_implemented` because their native shapes
-        differ â€” for Anthropic call `POST /v1/messages`
+        differ â€?for Anthropic call `POST /v1/messages`
         ([Native Formats / Anthropic](/native-formats/anthropic)),
         for Gemini call `POST /v1beta/models/{model}:generateContent`
         ([Native Formats / Gemini](/native-formats/gemini)).
@@ -354,23 +354,23 @@ paths:
         What you can do on this surface (request shape stays Gemini's
         native JSON; pick the right model for each):
 
-        - **Chat / reasoning** â€” any `gemini-*` chat model, paired
+        - **Chat / reasoning** â€?any `gemini-*` chat model, paired
           with `generationConfig.thinkingConfig` for budget control.
-        - **Multimodal input** â€” `inline_data` parts for image / audio /
+        - **Multimodal input** â€?`inline_data` parts for image / audio /
           video / file content alongside `text` parts.
-        - **Function calling** â€” `tools: [{functionDeclarations: [...]}]`.
-        - **Built-in server tools** â€” `tools: [{googleSearch: {}}]`,
+        - **Function calling** â€?`tools: [{functionDeclarations: [...]}]`.
+        - **Built-in server tools** â€?`tools: [{googleSearch: {}}]`,
           `tools: [{codeExecution: {}}]`, `tools: [{urlContext: {}}]`.
-        - **Text-to-speech** â€” `*-tts` preview models with
+        - **Text-to-speech** â€?`*-tts` preview models with
           `generationConfig.responseModalities: ["AUDIO"]` and
           `speechConfig.voiceConfig`.
-        - **Image generation** â€” `gemini-*-image*` models; the response
+        - **Image generation** â€?`gemini-*-image*` models; the response
           carries the image as an `inlineData` part.
 
         Authentication accepts the standard `Authorization: Bearer
-        sk-clearmaas-â€¦` header, plus the Gemini-style `x-goog-api-key`
+        sk-â€¦` header, plus the Gemini-style `x-goog-api-key`
         header and `?key=` query string for google-genai SDK
-        compatibility â€” see [Get an API key](/getting-started/get-api-key#how-to-send-the-key).
+        compatibility â€?see [Get an API key](/getting-started/get-api-key#how-to-send-the-key).
       operationId: geminiNativeAction
       servers:
         - url: https://api.clearmaas.com
@@ -455,10 +455,10 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: API key (sk-clearmaas-...)
-      description: 'ClearMaas API keys look like `sk-clearmaas-...`. Pass them in the
+      bearerFormat: API key (sk-...)
+      description: 'ClearMaas API keys look like `sk-...`. Pass them in the
 
-        `Authorization: Bearer sk-clearmaas-...` header.
+        `Authorization: Bearer sk-...` header.
 
         '
   headers:
@@ -604,15 +604,15 @@ components:
     ChatMessageContentPart:
       description: |
         A single part of a multimodal message. Use an **array** of parts as
-        `ChatMessage.content` when sending anything beyond plain text â€” images,
+        `ChatMessage.content` when sending anything beyond plain text â€?images,
         audio, or any mix. Use a **plain string** for simple text.
 
         The gateway accepts OpenAI's content-part format for every upstream
         (OpenAI / Anthropic / Google). ClearMaas's translation layer adapts:
 
-        - â†’ OpenAI: native target â€” content parts land in OpenAI's shape.
-        - â†’ Anthropic: `image_url` becomes `{type: image, source: ...}`.
-        - â†’ Google Gemini: `image_url` becomes `inline_data`; `input_audio`
+        - â†?OpenAI: native target â€?content parts land in OpenAI's shape.
+        - â†?Anthropic: `image_url` becomes `{type: image, source: ...}`.
+        - â†?Google Gemini: `image_url` becomes `inline_data`; `input_audio`
           becomes `inline_data` with the right MIME.
 
         Clients don't need provider-specific code.
@@ -1094,7 +1094,7 @@ components:
 
             aspect-ratio instead (Gemini Imagen), ClearMaas maps
 
-            `1024x1024` â†’ `1:1`, `1792x1024` â†’ `16:9`, etc.
+            `1024x1024` â†?`1:1`, `1792x1024` â†?`16:9`, etc.
 
             '
           examples:
@@ -1153,7 +1153,7 @@ components:
             Kling video model (customer-facing name with `kling/` namespace
             prefix). The endpoint Kling actually serves (text2video /
             image2video / omni-video) is determined by the metadata fields
-            you pass, not by which model name you pick â€” but only
+            you pass, not by which model name you pick â€?but only
             `kling/kling-video-o1` and `kling/kling-v3-omni` accept the
             multi-source reference fields (`image_list` / `video_list`).
           example: kling/kling-v3-omni
@@ -1199,19 +1199,19 @@ components:
             Multi-source reference (Omni endpoint, `kling/kling-video-o1`
             / `kling/kling-v3-omni` only):
 
-            - `image_list` (array): `[{image_url, type}]` â€” multi-image
+            - `image_list` (array): `[{image_url, type}]` â€?multi-image
               reference. Refer to images in prompt with `<<<image_1>>>` etc.
             - `video_list` (array):
               `[{video_url, refer_type, keep_original_sound}]`. On
               `kling/kling-v3-omni` limited to 3-10s and std/pro mode
               (not 4K).
 
-            Advanced features (model-dependent â€” see Capability Map):
+            Advanced features (model-dependent â€?see Capability Map):
 
             - `multi_shot` (bool) + `shot_type` (`customize` / `intelligence`)
               + `multi_prompt` (`[{index, prompt, duration}]`): multi-shot
               mode. Available on `kling/kling-v3` and `kling/kling-v3-omni`.
-            - `sound` (string): `"on"` / `"off"` â€” native audio. Available
+            - `sound` (string): `"on"` / `"off"` â€?native audio. Available
               on `kling/kling-v3` and `kling/kling-v3-omni` (any mode),
               and `kling/kling-v2-6` (pro mode only).
             - `watermark_info` (object): `{enabled: bool}`. Universal.
@@ -1281,7 +1281,7 @@ components:
               type: string
               enum: [textGenerate, generate, omniVideo]
               description: |
-                Resolved upstream endpoint variant â€” text-to-video /
+                Resolved upstream endpoint variant â€?text-to-video /
                 image-to-video / Omni-Video.
             status:
               type: string
@@ -1306,7 +1306,7 @@ components:
               type: string
               description: |
                 Rendered MP4 URL. Present when `status` is `SUCCESS`.
-                URLs are upstream-issued and may carry a short TTL â€”
+                URLs are upstream-issued and may carry a short TTL â€?
                 download promptly or rehost if you need long retention.
             fail_reason:
               type: string
@@ -1331,7 +1331,7 @@ components:
           type: string
           example: openai/tts-1
           description: |
-            OpenAI TTS model â€” `openai/tts-1`, `openai/tts-1-hd`,
+            OpenAI TTS model â€?`openai/tts-1`, `openai/tts-1-hd`,
             `openai/gpt-4o-mini-tts`. Gemini TTS preview models are not
             served on this endpoint; use Gemini's native `/v1beta/`
             surface with `responseModalities: ["AUDIO"]` instead.
@@ -1341,7 +1341,7 @@ components:
           type: string
           description: |
             Voice identifier. The gateway forwards this field to the
-            upstream unchanged â€” use whichever voice name the upstream
+            upstream unchanged â€?use whichever voice name the upstream
             model supports.
           examples:
           - alloy
@@ -1405,7 +1405,7 @@ components:
             (a custom function tool, same shape as Chat Completions),
             `web_search` (built-in web grounding), `mcp` (Model Context
             Protocol), and `code_interpreter`. Built-in tool calls
-            (`web_search_call`, etc.) are billed per call â€” see
+            (`web_search_call`, etc.) are billed per call â€?see
             Operations / Billing & Usage.
           items:
             type: object

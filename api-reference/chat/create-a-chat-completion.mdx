@@ -27,9 +27,9 @@ info:
   version: '2026.04'
   description: |
     ClearMaas is an OpenAI-compatible API gateway that routes your requests
-    directly to upstream providers â€” OpenAI, Anthropic, Google Gemini,
+    directly to upstream providers â€?OpenAI, Anthropic, Google Gemini,
     DeepSeek, xAI Grok, Alibaba Qwen, Moonshot Kimi, MiniMax, and Kling
-    (video) â€” at provider cost price. You pay what the provider charges.
+    (video) â€?at provider cost price. You pay what the provider charges.
     We don't add per-token markup.
   contact:
     name: ClearMaas Support
@@ -88,7 +88,7 @@ components:
         model:
           type: string
           description: |
-            Model ID â€” provider-prefixed (e.g. `openai/gpt-4o-mini`), bare alias, or named router (e.g. `clearmaas/auto`).
+            Model ID â€?provider-prefixed (e.g. `openai/gpt-4o-mini`), bare alias, or named router (e.g. `clearmaas/auto`).
           example: openai/gpt-4o-mini
         messages:
           type: array
@@ -355,8 +355,8 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: API key (sk-clearmaas-...)
+      bearerFormat: API key (sk-...)
       description: |
-        ClearMaas API keys look like `sk-clearmaas-...`. Pass them in the
-        `Authorization: Bearer sk-clearmaas-...` header.
+        ClearMaas API keys look like `sk-...`. Pass them in the
+        `Authorization: Bearer sk-...` header.
 ````

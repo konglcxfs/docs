@@ -9,7 +9,7 @@ icon: "monitor"
 ## Prerequisites
 
 - TRAE IDE installed ([trae.ai](https://www.trae.ai))
-- A ClearMaas API key starting with `sk-clearmaas-`
+- A ClearMaas API key starting with `sk-`
 
 ## Setup via AI Settings
 
@@ -17,14 +17,14 @@ TRAE supports two protocol paths for custom providers:
 
 ### OpenAI-compatible setup
 
-1. Open **Settings** â†’ **AI** (or **Trae AI**)
+1. Open **Settings** â†?**AI** (or **Trae AI**)
 2. Navigate to **Models** or **Custom Providers**
 3. Add a new provider:
 
 | Field | Value |
 |---|---|
 | Provider | **OpenAI Compatible** |
-| API Key | `sk-clearmaas-...` |
+| API Key | `sk-...` |
 | Base URL | `https://api.clearmaas.com/v1` |
 
 ### Anthropic-compatible setup
@@ -32,10 +32,10 @@ TRAE supports two protocol paths for custom providers:
 | Field | Value |
 |---|---|
 | Provider | **Anthropic Compatible** |
-| API Key | `sk-clearmaas-...` |
+| API Key | `sk-...` |
 | Base URL | `https://api.clearmaas.com` |
 
-The Anthropic path uses the bare host URL â€” TRAE's SDK appends `/v1/messages` automatically.
+The Anthropic path uses the bare host URL â€?TRAE's SDK appends `/v1/messages` automatically.
 
 ## Model naming format
 
@@ -70,7 +70,7 @@ For team consistency, you can add model configuration to a project file (if TRAE
 // .trae/ai-settings.json (if supported)
 {
   "provider": "openai-compatible",
-  "api_key": "sk-clearmaas-...",
+  "api_key": "sk-...",
   "base_url": "https://api.clearmaas.com/v1",
   "default_model": "anthropic/claude-sonnet-4.6"
 }
@@ -81,10 +81,10 @@ For team consistency, you can add model configuration to a project file (if TRAE
 If TRAE reads standard environment variables, you can set them before launching:
 
 ```bash
-export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_API_KEY="sk-..."
 export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
 # or for Anthropic path:
-export ANTHROPIC_API_KEY="sk-clearmaas-..."
+export ANTHROPIC_API_KEY="sk-..."
 export ANTHROPIC_BASE_URL="https://api.clearmaas.com"
 trae .
 ```

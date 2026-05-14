@@ -1,6 +1,6 @@
 ---
 title: "Model Fallbacks"
-description: "Chain multiple models â€” if one fails, try the next."
+description: "Chain multiple models â€?if one fails, try the next."
 icon: "repeat"
 ---
 
@@ -13,7 +13,7 @@ control (prefer a cheaper model, fall back to a stronger one if needed).
 
 Put an ordered list of model IDs in `extra_body.models` and set
 `extra_body.route` to `"fallback"`. The primary `model` field still
-matters â€” it's the first attempt â€” but ClearMaas ignores it in favor of
+matters â€?it's the first attempt â€?but ClearMaas ignores it in favor of
 the chain if the chain is present.
 
 <CodeGroup>
@@ -42,7 +42,7 @@ const response = await openai.chat.completions.create({
 
   ```bash cURL
 curl https://api.clearmaas.com/v1/chat/completions \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "openai/gpt-4o",
@@ -72,13 +72,13 @@ curl https://api.clearmaas.com/v1/chat/completions \
     the next chain entry is tried.
   * The request fails only when **every** chain entry has been exhausted.
   * **Streaming caveat**: once any byte of the response has been sent
-    to the client, fallback can no longer kick in â€” if the upstream
+    to the client, fallback can no longer kick in â€?if the upstream
     drops mid-stream, the client sees a truncated stream, not a
     transparent retry on the next model.
 * Billing happens for the model that **actually served** the response, at
-  that model's rate â€” not the primary's.
+  that model's rate â€?not the primary's.
 * `extra_body.route` must be exactly `"fallback"` for the chain to
-  activate. Any other value (or missing) â†’ the chain is ignored and
+  activate. Any other value (or missing) â†?the chain is ignored and
   only the top-level `model` is used.
 
 ## How to tell which model served the response

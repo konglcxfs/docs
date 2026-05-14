@@ -10,7 +10,7 @@ at ClearMaas and using an ClearMaas API key.
 ## 1. Get an API key
 
 Sign in at [clearmaas.com](https://clearmaas.com) and copy your key from
-the dashboard. ClearMaas keys start with `sk-clearmaas-`. See
+the dashboard. ClearMaas keys start with `sk-`. See
 [Get an API key](/getting-started/get-api-key) for the options you can
 set when creating a key (credit limit, expiration).
 
@@ -19,7 +19,7 @@ set when creating a key (credit limit, expiration).
 <CodeGroup>
   ```bash cURL
 curl https://api.clearmaas.com/v1/chat/completions \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "openai/gpt-4o-mini",
@@ -32,7 +32,7 @@ from openai import OpenAI
 
 client = OpenAI(
     base_url="https://api.clearmaas.com/v1",
-    api_key="sk-clearmaas-...",
+    api_key="sk-...",
 )
 
 response = client.chat.completions.create(
@@ -48,7 +48,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({
   baseURL: "https://api.clearmaas.com/v1",
-  apiKey: "sk-clearmaas-...",
+  apiKey: "sk-...",
 });
 
 const res = await openai.chat.completions.create({
@@ -60,8 +60,8 @@ console.log(res.choices[0].message.content);
   ```
 </CodeGroup>
 
-That's it. Everything else â€” streaming, tools, vision, JSON mode, Claude
-models, Gemini models, Grok models â€” works exactly as it would against
+That's it. Everything else â€?streaming, tools, vision, JSON mode, Claude
+models, Gemini models, Grok models â€?works exactly as it would against
 the provider directly. Swap `openai/gpt-4o-mini` for any model ID
 you see in `/v1/models`. Models are namespaced by provider:
 `openai/gpt-4o-mini`, `anthropic/claude-sonnet-4.6`,

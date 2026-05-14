@@ -34,7 +34,7 @@ no audio); pick `kling/kling-v3-omni` for the full Omni surface.
 Native audio = Kling auto-generates a soundtrack matching the video.
 Bills extra upstream. Toggle via `metadata.sound: "on"`.
 
-The submit endpoint is the same for all models â€”
+The submit endpoint is the same for all models â€?
 `POST /v1/video/generations`. What changes is which `metadata` fields
 the upstream honors per the table above.
 
@@ -45,7 +45,7 @@ upstream-specific parameters under `metadata`:
 
 ```bash
 curl https://api.clearmaas.com/v1/video/generations \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "kling/kling-v3-omni",
@@ -75,7 +75,7 @@ Response carries the task ID:
 <Note>
   POST returns lowercase `status: "queued"`. GET returns a wrapped
   envelope with uppercase status (`SUBMITTED` / `IN_PROGRESS` / `SUCCESS` /
-  `FAILURE`) â€” see Poll for results below.
+  `FAILURE`) â€?see Poll for results below.
 </Note>
 
 ### Common metadata fields
@@ -101,7 +101,7 @@ Use the task ID returned at submit time:
 
 ```bash
 curl https://api.clearmaas.com/v1/video/generations/task_9q9oz6tjtgABYWC1QIqoz3sscgVz7ycw \
-  -H "Authorization: Bearer sk-clearmaas-..."
+  -H "Authorization: Bearer sk-..."
 ```
 
 Response shape is wrapped:
@@ -140,7 +140,7 @@ Poll every 5 - 10 seconds. A typical std 5-second clip completes in 30 - 60
 seconds; 4K, 15-second, and multi-shot tasks take 2 - 5 minutes.
 
 `data.result_url` is a Kling-signed URL (note the `ksTime` / `ksSecret`
-query params). Download or rehost promptly if you need long retention â€”
+query params). Download or rehost promptly if you need long retention â€?
 the signature has an upstream-defined expiry.
 
 ## Endpoint variants
@@ -155,7 +155,7 @@ text-to-video:
 
 ```bash
 curl https://api.clearmaas.com/v1/video/generations \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "kling/kling-v2-6",
@@ -171,7 +171,7 @@ frame) for first / last frame i2v:
 
 ```bash
 curl https://api.clearmaas.com/v1/video/generations \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "kling/kling-v2-master",
@@ -186,7 +186,7 @@ curl https://api.clearmaas.com/v1/video/generations \
 `image_list` and `video_list` route the request to Kling's Omni-Video
 endpoint. Available only on `kling/kling-video-o1` and `kling/kling-v3-omni`.
 
-**`image_list`** â€” multi-image reference:
+**`image_list`** â€?multi-image reference:
 
 ```json
 { "image_list": [{ "image_url": "...", "type": "first_frame" }] }
@@ -197,20 +197,20 @@ endpoint. Available only on `kling/kling-video-o1` and `kling/kling-v3-omni`.
   is meant as a frame anchor. End-only is not supported (always pair with
   a first-frame image).
 
-**`video_list`** â€” video reference (max 1 video, MP4/MOV, â‰¤200MB):
+**`video_list`** â€?video reference (max 1 video, MP4/MOV, â‰?00MB):
 
 ```json
 { "video_list": [{ "video_url": "...", "refer_type": "base", "keep_original_sound": "yes" }] }
 ```
 
-* `refer_type`: `base` (video editing â€” input video is edited; default)
-  or `feature` (style/composition reference â€” generate next/previous shot).
+* `refer_type`: `base` (video editing â€?input video is edited; default)
+  or `feature` (style/composition reference â€?generate next/previous shot).
 * `keep_original_sound`: `yes` / `no`.
 * On `kling/kling-v3-omni`, video reference is supported only at 3-10s
   duration, std/pro mode (not 4K).
 
 <Note>
-  When `video_list` is set, `metadata.sound` must be `"off"` â€”
+  When `video_list` is set, `metadata.sound` must be `"off"` â€?
   Kling rejects the combination otherwise.
 </Note>
 
@@ -220,7 +220,7 @@ Omni-only. The index matches the array order (1-based).
 
 ```bash
 curl https://api.clearmaas.com/v1/video/generations \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "kling/kling-v3-omni",
@@ -238,7 +238,7 @@ curl https://api.clearmaas.com/v1/video/generations \
 ## Advanced features
 
 These features work across text-to-video, image-to-video, and Omni-Video
-endpoints â€” model support varies. Pass them via `metadata`.
+endpoints â€?model support varies. Pass them via `metadata`.
 
 ### Multi-shot
 
@@ -249,7 +249,7 @@ own prompt and duration. Available on `kling/kling-v3` and `kling/kling-v3-omni`
 | -------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `multi_shot` | bool | Set `true` to enable. Top-level `prompt` and first/end-frame inputs are then ignored. |
 | `shot_type` | string | `customize` (use `multi_prompt` literally) or `intelligence` (Kling auto-segments). Required when `multi_shot=true`. |
-| `multi_prompt` | array | `[{index, prompt, duration}]`. 1 - 6 storyboards. Each shot's `duration` â‰¥ 1s; sum must equal the task's total `duration`. Each `prompt` â‰¤ 512 chars. |
+| `multi_prompt` | array | `[{index, prompt, duration}]`. 1 - 6 storyboards. Each shot's `duration` â‰?1s; sum must equal the task's total `duration`. Each `prompt` â‰?512 chars. |
 
 ### Native audio
 
@@ -269,7 +269,7 @@ watermark on the rendered video. Default is no watermark.
 
 ## Billing
 
-Kling video bills per task. ClearMaas charges exactly what Kling charges â€”
+Kling video bills per task. ClearMaas charges exactly what Kling charges â€?
 the upstream `final_unit_deduction` becomes the wallet debit, with no
 markup. Final cost matches Kling's published rate card.
 
@@ -283,12 +283,12 @@ See your wallet history in the console for actual per-task spend.
 
 If you already have code written against Kling's official SDK, ClearMaas
 also speaks Kling's native wire format on `/kling/v1/videos/...`. Body
-fields stay flat (`model_name`, `mode`, etc.) â€” only the base URL,
+fields stay flat (`model_name`, `mode`, etc.) â€?only the base URL,
 `Authorization` header, and `model_name` value change:
 
 ```bash
 curl https://api.clearmaas.com/kling/v1/videos/omni-video \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model_name": "kling/kling-v3-omni",
@@ -314,6 +314,6 @@ Pick whichever wire format matches your existing code. Both bill identically.
 
 ## See also
 
-* [API Reference / Video](/api-reference/video/submit-a-video-task) â€” full schema with try-it
+* [API Reference / Video](/api-reference/video/submit-a-video-task) â€?full schema with try-it
 * [Operations / Billing & Usage](/operations/billing-and-usage)
 * [Operations / Errors](/operations/errors)

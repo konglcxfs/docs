@@ -9,7 +9,7 @@ icon: "file-code"
 ## Prerequisites
 
 - Zed installed ([zed.dev](https://zed.dev))
-- A ClearMaas API key starting with `sk-clearmaas-`
+- A ClearMaas API key starting with `sk-`
 
 ## Setup via Agent Panel (UI)
 
@@ -26,7 +26,7 @@ API keys are stored in your OS's secure credential storage, not as plain text.
 
 For programmatic or repeatable configuration, edit `settings.json` directly:
 
-1. Open the settings file: `Cmd+Shift+P` â†’ "Open Settings File (JSON)"
+1. Open the settings file: `Cmd+Shift+P` â†?"Open Settings File (JSON)"
 2. Add the `language_models` section:
 
 ```json
@@ -63,7 +63,7 @@ Then add your API key via the Agent Panel UI (`agent: open settings`), or set it
   "language_models": {
     "openai": {
       "api_url": "https://api.clearmaas.com/v1",
-      "api_key": "sk-clearmaas-...",
+      "api_key": "sk-...",
       "available_models": [
         {
           "name": "anthropic/claude-sonnet-4.6",
@@ -118,7 +118,7 @@ Configure any ClearMaas model by adding it to `available_models`. Common options
 1. Open the Agent Panel (`Cmd+Shift+A`)
 2. Select **OpenAI API Compatible** as provider
 3. Select a model (e.g., `anthropic/claude-sonnet-4.6`)
-4. Ask a question â€” verify the response comes through
+4. Ask a question â€?verify the response comes through
 
 Check your ClearMaas dashboard to confirm the request was routed.
 

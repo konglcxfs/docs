@@ -9,12 +9,12 @@ provider's TTS model you want to use.
 
 ## OpenAI-shape: `/v1/audio/speech`
 
-Use this with OpenAI's TTS model family â€” `openai/tts-1`,
+Use this with OpenAI's TTS model family â€?`openai/tts-1`,
 `openai/tts-1-hd`, `openai/gpt-4o-mini-tts`, and similar:
 
 ```bash
 curl https://api.clearmaas.com/v1/audio/speech \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "model": "openai/tts-1",
@@ -31,12 +31,12 @@ which format the upstream returned (`audio/mpeg`, `audio/wav`,
 ## Gemini TTS: native `/v1beta/`
 
 Gemini TTS preview models (e.g. `google/gemini-2.5-flash-preview-tts`)
-are not served on `/v1/audio/speech` â€” call them through Gemini's
+are not served on `/v1/audio/speech` â€?call them through Gemini's
 native surface instead:
 
 ```bash
 curl "https://api.clearmaas.com/v1beta/models/google/gemini-2.5-flash-preview-tts:generateContent" \
-  -H "Authorization: Bearer sk-clearmaas-..." \
+  -H "Authorization: Bearer sk-..." \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [{"parts": [{"text": "Hello, world!"}]}],
@@ -55,6 +55,6 @@ and configuration options.
 
 ## See also
 
-* [API Reference / Audio](/api-reference/audio/generate-speech) â€” full schema with try-it
+* [API Reference / Audio](/api-reference/audio/generate-speech) â€?full schema with try-it
 * [Native Formats / Gemini](/native-formats/gemini)
-* [Advanced / Audio input](/advanced/audio-input) â€” sending audio TO a chat model
+* [Advanced / Audio input](/advanced/audio-input) â€?sending audio TO a chat model

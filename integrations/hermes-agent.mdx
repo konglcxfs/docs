@@ -9,7 +9,7 @@ icon: "terminal"
 ## Prerequisites
 
 - Hermes Agent installed (`pip install hermes-agent` or via [installer](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart))
-- A ClearMaas API key starting with `sk-clearmaas-`
+- A ClearMaas API key starting with `sk-`
 
 ## Config file locations
 
@@ -42,7 +42,7 @@ agent:
 Then add your API key to `~/.hermes/.env`:
 
 ```bash
-OPENAI_API_KEY="sk-clearmaas-..."
+OPENAI_API_KEY="sk-..."
 ```
 
 ## Provider options
@@ -83,14 +83,14 @@ hermes model
 This interactive command walks through provider selection. Choose **custom** and enter:
 
 - Base URL: `https://api.clearmaas.com/v1` (OpenAI-compatible) or `https://api.clearmaas.com` (Anthropic-compatible)
-- API Key: `sk-clearmaas-...`
+- API Key: `sk-...`
 
 ## Environment variable override
 
 Override settings at runtime:
 
 ```bash
-export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_API_KEY="sk-..."
 export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
 hermes
 ```
@@ -130,7 +130,7 @@ hermes config migrate
 ## Verification
 
 ```bash
-export OPENAI_API_KEY="sk-clearmaas-..."
+export OPENAI_API_KEY="sk-..."
 export OPENAI_BASE_URL="https://api.clearmaas.com/v1"
 hermes
 # Type a question and verify the response
